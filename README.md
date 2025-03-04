@@ -36,3 +36,8 @@ Available Commands:
 | `push_all`                          | Push changes across repositories |
 | `status_all`                        | Show Git status for all repositories |
 
+
+
+> **Note:**
+> All commands should be executed from the **base repository** (the main Git repository that contains submodules).
+> Running them from a submodule directory may result in unexpected behavior.
