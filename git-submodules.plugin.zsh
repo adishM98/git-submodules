@@ -116,7 +116,7 @@ function update_git_submodules_plugin() {
     # Check if there are new updates
     if ! git diff --quiet HEAD origin/main; then
         echo "A new update is available for git-submodules plugin."
-        
+
         # Ask user if they want to update
         read "RESPONSE?Do you want to update? (y/N): "
 
@@ -131,7 +131,12 @@ function update_git_submodules_plugin() {
 
             if [[ "$RELOAD" =~ ^[Yy]$ ]]; then
                 echo "Reloading Zsh..."
-                exec zsh
+                
+                # Store the current directory in an environment variable
+                export PREV_DIR="$ORIGINAL_DIR"
+
+                # Reload Zsh and restore the working directory
+                exec zsh -c 'cd "$PREV_DIR"; exec zsh'
             else
                 echo "You can reload manually by running: source ~/.zshrc"
             fi
