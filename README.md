@@ -46,7 +46,7 @@ cd ~/.oh-my-zsh/custom/plugins/git-submodules && git pull && source ~/.zshrc && 
 ```
 
 
-**Note:**
+#### Note:
 All commands should be executed from the **base repository** (the main Git repository that contains submodules).
 
 Running them from a submodule directory may result in unexpected behavior.
