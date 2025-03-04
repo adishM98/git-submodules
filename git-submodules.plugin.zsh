@@ -96,5 +96,3 @@ status_all() {
     git status
     git submodule foreach --quiet --recursive "git status"
 }
-
-echo "git-submodules plugin loaded!"
