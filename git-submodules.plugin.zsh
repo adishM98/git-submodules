@@ -115,13 +115,29 @@ function update_git_submodules_plugin() {
 
     # Check if there are new updates
     if ! git diff --quiet HEAD origin/main; then
-        echo "Updating git-submodules plugin..."
-        git reset --hard origin/main --quiet
-        git pull origin main --quiet
-        echo "Update complete! Reloading Zsh..."
+        echo "A new update is available for git-submodules plugin."
         
-        # Automatically reload Zsh
-        exec zsh
+        # Ask user if they want to update
+        read "RESPONSE?Do you want to update? (y/N): "
+
+        if [[ "$RESPONSE" =~ ^[Yy]$ ]]; then
+            echo "Updating git-submodules plugin..."
+            git reset --hard origin/main --quiet
+            git pull origin main --quiet
+            echo "Update complete!"
+
+            # Ask if they want to reload Zsh
+            read "RELOAD?Would you like to reload Zsh now? (y/N): "
+
+            if [[ "$RELOAD" =~ ^[Yy]$ ]]; then
+                echo "Reloading Zsh..."
+                exec zsh
+            else
+                echo "You can reload manually by running: source ~/.zshrc"
+            fi
+        else
+            echo "Skipping update."
+        fi
     fi
 
     # Restore the original directory
