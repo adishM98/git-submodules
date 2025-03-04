@@ -104,6 +104,9 @@ GIT_SUBMODULES_PLUGIN_DIR="${0:A:h}"
 
 # Function to update the plugin automatically
 function update_git_submodules_plugin() {
+    # Store the current directory
+    local ORIGINAL_DIR="$(pwd)"
+
     echo "Checking for updates for git-submodules plugin..."
     cd "$GIT_SUBMODULES_PLUGIN_DIR"
 
@@ -117,6 +120,9 @@ function update_git_submodules_plugin() {
         git pull origin main --quiet
         echo "Update complete! Please restart your terminal or run 'source ~/.zshrc'."
     fi
+
+    # Restore the original directory
+    cd "$ORIGINAL_DIR"
 }
 
 # Run the update function
