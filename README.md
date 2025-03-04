@@ -9,9 +9,9 @@ This plugin provides useful Git commands for managing submodules easily.
 git clone https://github.com/adishM98/git-submodules.git ~/.oh-my-zsh/custom/plugins/git-submodules
 ```
 
-2. Edit ~/.zshrc and add it to plugins:
+2. Edit `~/.zshrc` and add it to plugins:
 ```sh
-plugins=(git git-submodules)
+plugins=(git-submodules)
 ```
 
 3. Reload Zsh:
