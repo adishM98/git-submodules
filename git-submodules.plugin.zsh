@@ -96,3 +96,28 @@ status_all() {
     git status
     git submodule foreach --quiet --recursive "git status"
 }
+
+
+
+# Define the plugin directory
+GIT_SUBMODULES_PLUGIN_DIR="${0:A:h}"
+
+# Function to update the plugin automatically
+function update_git_submodules_plugin() {
+    echo "Checking for updates for git-submodules plugin..."
+    cd "$GIT_SUBMODULES_PLUGIN_DIR"
+
+    # Fetch latest changes from the main branch quietly
+    git fetch origin main --quiet
+
+    # Check if there are new updates
+    if ! git diff --quiet HEAD origin/main; then
+        echo "Updating git-submodules plugin..."
+        git reset --hard origin/main --quiet
+        git pull origin main --quiet
+        echo "Update complete! Please restart your terminal or run 'source ~/.zshrc'."
+    fi
+}
+
+# Run the update function
+update_git_submodules_plugin

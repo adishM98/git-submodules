@@ -37,6 +37,14 @@ Available Commands:
 | `status_all`                        | Show Git status for all repositories |
 
 
+## Auto-Update
+This plugin automatically updates itself whenever a new version is available.  
+
+To manually force an update, run:
+```sh
+cd ~/.oh-my-zsh/custom/plugins/git-submodules && git pull && source ~/.zshrc
+
+
 
 **Note:**
 All commands should be executed from the **base repository** (the main Git repository that contains submodules).
