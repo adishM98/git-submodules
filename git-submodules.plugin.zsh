@@ -102,7 +102,7 @@ status_all() {
 # Define the plugin directory
 GIT_SUBMODULES_PLUGIN_DIR="${0:A:h}"
 
-# Function to update the plugin automatically
+# Function to update the plugin manually
 function update_git_submodules_plugin() {
     # Store the current directory
     local ORIGINAL_DIR="$(pwd)"
@@ -131,7 +131,7 @@ function update_git_submodules_plugin() {
 
             if [[ "$RELOAD" =~ ^[Yy]$ ]]; then
                 echo "Reloading Zsh..."
-                
+
                 # Store the current directory in an environment variable
                 export PREV_DIR="$ORIGINAL_DIR"
 
@@ -143,11 +143,10 @@ function update_git_submodules_plugin() {
         else
             echo "Skipping update."
         fi
+    else
+        echo "You're already using the latest version of git-submodules plugin."
     fi
 
     # Restore the original directory
     cd "$ORIGINAL_DIR"
 }
-
-# Run the update function
-update_git_submodules_plugin
