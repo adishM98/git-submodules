@@ -42,7 +42,7 @@ This plugin automatically updates itself whenever a new version is available.
 
 To manually force an update, run:
 ```sh
-cd ~/.oh-my-zsh/custom/plugins/git-submodules && git pull && source ~/.zshrc
+cd ~/.oh-my-zsh/custom/plugins/git-submodules && git pull && source ~/.zshrc && cd
 ```
 
 
