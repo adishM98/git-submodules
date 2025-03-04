@@ -118,7 +118,10 @@ function update_git_submodules_plugin() {
         echo "Updating git-submodules plugin..."
         git reset --hard origin/main --quiet
         git pull origin main --quiet
-        echo "Update complete! Please restart your terminal or run 'source ~/.zshrc'."
+        echo "Update complete! Reloading Zsh..."
+        
+        # Automatically reload Zsh
+        exec zsh
     fi
 
     # Restore the original directory
