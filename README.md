@@ -38,6 +38,7 @@ Available Commands:
 
 
 
-> **Note:**
-> All commands should be executed from the **base repository** (the main Git repository that contains submodules).
-> Running them from a submodule directory may result in unexpected behavior.
+**Note:**
+All commands should be executed from the **base repository** (the main Git repository that contains submodules).
+
+Running them from a submodule directory may result in unexpected behavior.
