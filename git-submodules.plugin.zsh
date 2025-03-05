@@ -97,6 +97,42 @@ status_all() {
     git submodule foreach --quiet --recursive "git status"
 }
 
+start_feature() {
+    local feature_name="$1"
+    local scope="$2"
+
+    if [ -z "$feature_name" ]; then
+        echo "Feature name required! Usage: start_feature <feature_name> [base|submodule|folder <path>]"
+        return 1
+    fi
+
+    case "$scope" in
+        base)
+            echo "Creating feature branch in base repository..."
+            git checkout -b "feature/$feature_name" && git push -u origin "feature/$feature_name"
+            ;;
+        submodule)
+            echo "Creating feature branch in submodules..."
+            git submodule foreach --quiet --recursive "git checkout -b feature/$feature_name && git push -u origin feature/$feature_name"
+            ;;
+        folder)
+            local folder_path="$3"
+            if [ -z "$folder_path" ] || [ ! -d "$folder_path" ]; then
+                echo "Valid folder path required! Usage: start_feature <feature_name> folder <path>"
+                return 1
+            fi
+            echo "Creating feature branch in $folder_path..."
+            (cd "$folder_path" && git checkout -b "feature/$feature_name" && git push -u origin "feature/$feature_name")
+            ;;
+        *)
+            echo "Invalid scope! Use 'base', 'submodule', or 'folder <path>'"
+            return 1
+            ;;
+    esac
+
+    echo "Feature branch 'feature/$feature_name' created successfully in $scope."
+}
+
 
 
 # Define the plugin directory
