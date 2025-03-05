@@ -98,21 +98,27 @@ status_all() {
 }
 
 start_feature() {
-    local feature_name
-    
-    read -p "Enter feature name: " feature_name
+    local feature_name scope folder_path
+
+    # Prompt for feature name
+    echo -n "Enter feature name: "
+    read feature_name
+
     if [ -z "$feature_name" ]; then
         echo "Feature name is required!"
         return 1
     fi
 
-    echo "Select where to create the feature branch:"
+    # Prompt for scope
+    echo "Where do you want to create the feature branch?"
     echo "1) Base repository"
     echo "2) Submodule repositories"
     echo "3) Specific folder"
-    read -p "Enter your choice (1/2/3): " choice
-    
-    case "$choice" in
+    echo "4) All (Base + Submodules)"
+    echo -n "Enter your choice (1/2/3/4): "
+    read scope
+
+    case "$scope" in
         1)
             echo "Creating feature branch in base repository..."
             git checkout -b "feature/$feature_name" && git push -u origin "feature/$feature_name"
@@ -122,22 +128,27 @@ start_feature() {
             git submodule foreach --quiet --recursive "git checkout -b feature/$feature_name && git push -u origin feature/$feature_name"
             ;;
         3)
-            local folder_path
-            read -p "Enter the folder path: " folder_path
+            echo -n "Enter folder path: "
+            read folder_path
             if [ -z "$folder_path" ] || [ ! -d "$folder_path" ]; then
-                echo "Valid folder path is required!"
+                echo "Valid folder path required!"
                 return 1
             fi
             echo "Creating feature branch in $folder_path..."
             (cd "$folder_path" && git checkout -b "feature/$feature_name" && git push -u origin "feature/$feature_name")
             ;;
+        4)
+            echo "Creating feature branch in base repository and submodules..."
+            git checkout -b "feature/$feature_name" && git push -u origin "feature/$feature_name"
+            git submodule foreach --quiet --recursive "git checkout -b feature/$feature_name && git push -u origin feature/$feature_name"
+            ;;
         *)
-            echo "Invalid choice! Please select 1, 2, or 3."
+            echo "Invalid choice! Please enter 1, 2, 3, or 4."
             return 1
             ;;
     esac
 
-    echo "Feature branch 'feature/$feature_name' created successfully."
+    echo "Feature branch 'feature/$feature_name' created successfully!"
 }
 
 
