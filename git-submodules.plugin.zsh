@@ -97,50 +97,54 @@ status_all() {
     git submodule foreach --quiet --recursive "git status"
 }
 
-start_feature() {
-    local feature_name scope folder_path
+create_branch_interactive() {
+    local branch_type="$1"
+    local branch_name scope folder_paths
 
-    # Prompt for feature name
-    echo -n "Enter feature name: "
-    read feature_name
+    # Prompt for branch name
+    echo -n "Enter $branch_type name: "
+    read branch_name
 
-    if [ -z "$feature_name" ]; then
-        echo "Feature name is required!"
+    if [ -z "$branch_name" ]; then
+        echo "$branch_type name is required!"
         return 1
     fi
 
     # Prompt for scope
-    echo "Where do you want to create the feature branch?"
+    echo "Where do you want to create the $branch_type branch?"
     echo "1) Base repository"
     echo "2) Submodule repositories"
-    echo "3) Specific folder"
+    echo "3) Specific folders"
     echo "4) All (Base + Submodules)"
     echo -n "Enter your choice (1/2/3/4): "
     read scope
 
     case "$scope" in
         1)
-            echo "Creating feature branch in base repository..."
-            git checkout -b "feature/$feature_name" && git push -u origin "feature/$feature_name"
+            echo "Creating $branch_type branch in base repository..."
+            git checkout -b "$branch_type/$branch_name" && git push -u origin "$branch_type/$branch_name"
             ;;
         2)
-            echo "Creating feature branch in submodules..."
-            git submodule foreach --quiet --recursive "git checkout -b feature/$feature_name && git push -u origin feature/$feature_name"
+            echo "Creating $branch_type branch in submodules..."
+            git submodule foreach --quiet --recursive "git checkout -b $branch_type/$branch_name && git push -u origin $branch_type/$branch_name"
             ;;
         3)
-            echo -n "Enter folder path: "
-            read folder_path
-            if [ -z "$folder_path" ] || [ ! -d "$folder_path" ]; then
-                echo "Valid folder path required!"
-                return 1
-            fi
-            echo "Creating feature branch in $folder_path..."
-            (cd "$folder_path" && git checkout -b "feature/$feature_name" && git push -u origin "feature/$feature_name")
+            echo -n "Enter folder paths (separated by spaces): "
+            read -a folder_paths  # Read multiple folder paths into an array
+
+            for folder in "${folder_paths[@]}"; do
+                if [ -d "$folder" ]; then
+                    echo "Creating $branch_type branch in $folder..."
+                    (cd "$folder" && git checkout -b "$branch_type/$branch_name" && git push -u origin "$branch_type/$branch_name")
+                else
+                    echo "Warning: Folder '$folder' does not exist. Skipping..."
+                fi
+            done
             ;;
         4)
-            echo "Creating feature branch in base repository and submodules..."
-            git checkout -b "feature/$feature_name" && git push -u origin "feature/$feature_name"
-            git submodule foreach --quiet --recursive "git checkout -b feature/$feature_name && git push -u origin feature/$feature_name"
+            echo "Creating $branch_type branch in base repository and submodules..."
+            git checkout -b "$branch_type/$branch_name" && git push -u origin "$branch_type/$branch_name"
+            git submodule foreach --quiet --recursive "git checkout -b $branch_type/$branch_name && git push -u origin $branch_type/$branch_name"
             ;;
         *)
             echo "Invalid choice! Please enter 1, 2, 3, or 4."
@@ -148,8 +152,14 @@ start_feature() {
             ;;
     esac
 
-    echo "Feature branch 'feature/$feature_name' created successfully!"
+    echo "$branch_type branch '$branch_type/$branch_name' created successfully!"
 }
+
+# Wrapper functions for different branch types
+start_feature() { create_branch_interactive "feature"; }
+start_hotfix() { create_branch_interactive "hotfix"; }
+start_release() { create_branch_interactive "release"; }
+start_sprint() { create_branch_interactive "sprint"; }
 
 
 
