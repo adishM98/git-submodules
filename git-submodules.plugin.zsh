@@ -98,20 +98,16 @@ status_all() {
 }
 
 create_branch_interactive() {
-    local branch_type scope branch_name
+    local branch_type="$1"
+    local branch_name scope
     local -a folder_paths  # Declare an array explicitly for zsh
 
-    # Prompt for branch type (allows custom names)
-    echo -n "Enter branch type (e.g., feature, hotfix, release, sprint, or any custom name): "
-    read branch_type
-
+    # If branch_type is empty (when called from start_branch), skip the type prompt
     if [ -z "$branch_type" ]; then
-        echo "Branch type is required!"
-        return 1
+        echo -n "Enter branch name: "
+    else
+        echo -n "Enter $branch_type branch name: "
     fi
-
-    # Prompt for branch name
-    echo -n "Enter branch name: "
     read branch_name
 
     if [ -z "$branch_name" ]; then
@@ -120,7 +116,7 @@ create_branch_interactive() {
     fi
 
     # Prompt for scope
-    echo "Where do you want to create the '$branch_type/$branch_name' branch?"
+    echo "Where do you want to create the '$branch_name' branch?"
     echo "1) Base repository"
     echo "2) Submodule repositories"
     echo "3) Specific folders"
@@ -130,17 +126,17 @@ create_branch_interactive() {
 
     case "$scope" in
         1)
-            echo "Creating '$branch_type/$branch_name' branch in base repository..."
-            git checkout -b "$branch_type/$branch_name" && git push -u origin "$branch_type/$branch_name"
+            echo "Creating branch '$branch_name' in base repository..."
+            git checkout -b "$branch_name" && git push -u origin "$branch_name"
             ;;
         2)
-            echo "Creating '$branch_type/$branch_name' branch in submodules..."
-            git submodule foreach --quiet --recursive "git checkout -b $branch_type/$branch_name && git push -u origin $branch_type/$branch_name"
+            echo "Creating branch '$branch_name' in submodules..."
+            git submodule foreach --quiet --recursive "git checkout -b $branch_name && git push -u origin $branch_name"
             ;;
         3)
             echo -n "Enter folder paths (separated by spaces): "
             read -r folder_input  # Read input as a single string
-            folder_paths=(${=folder_input})  # Split string into array using zsh syntax
+            folder_paths=(${=folder_input})  # Split string into an array using zsh syntax
 
             if [ ${#folder_paths[@]} -eq 0 ]; then
                 echo "No valid folders provided!"
@@ -150,17 +146,17 @@ create_branch_interactive() {
             echo "Processing the following folders: ${folder_paths[@]}"
             for folder in "${folder_paths[@]}"; do
                 if [ -d "$folder" ]; then
-                    echo "Creating '$branch_type/$branch_name' branch in $folder..."
-                    (cd "$folder" && git checkout -b "$branch_type/$branch_name" && git push -u origin "$branch_type/$branch_name")
+                    echo "Creating branch '$branch_name' in $folder..."
+                    (cd "$folder" && git checkout -b "$branch_name" && git push -u origin "$branch_name")
                 else
                     echo "Error: Folder '$folder' does not exist. Skipping..."
                 fi
             done
             ;;
         4)
-            echo "Creating '$branch_type/$branch_name' branch in base repository and submodules..."
-            git checkout -b "$branch_type/$branch_name" && git push -u origin "$branch_type/$branch_name"
-            git submodule foreach --quiet --recursive "git checkout -b $branch_type/$branch_name && git push -u origin $branch_type/$branch_name"
+            echo "Creating branch '$branch_name' in base repository and submodules..."
+            git checkout -b "$branch_name" && git push -u origin "$branch_name"
+            git submodule foreach --quiet --recursive "git checkout -b $branch_name && git push -u origin $branch_name"
             ;;
         *)
             echo "Invalid choice! Please enter 1, 2, 3, or 4."
@@ -168,15 +164,15 @@ create_branch_interactive() {
             ;;
     esac
 
-    echo "Branch '$branch_type/$branch_name' created successfully!"
+    echo "Branch '$branch_name' created successfully!"
 }
 
-# Wrapper functions for quick access
-start_feature() { create_branch_interactive; }
-start_hotfix() { create_branch_interactive; }
-start_release() { create_branch_interactive; }
-start_sprint() { create_branch_interactive; }
-start_branch() { create_branch_interactive; }
+# Wrapper functions
+start_feature() { create_branch_interactive "feature"; }
+start_hotfix() { create_branch_interactive "hotfix"; }
+start_release() { create_branch_interactive "release"; }
+start_sprint() { create_branch_interactive "sprint"; }
+start_branch() { create_branch_interactive ""; }
 
 
 
