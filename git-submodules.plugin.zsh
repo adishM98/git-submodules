@@ -98,39 +98,46 @@ status_all() {
 }
 
 start_feature() {
-    local feature_name="$1"
-    local scope="$2"
-
+    local feature_name
+    
+    read -p "Enter feature name: " feature_name
     if [ -z "$feature_name" ]; then
-        echo "Feature name required! Usage: start_feature <feature_name> [base|submodule|folder <path>]"
+        echo "Feature name is required!"
         return 1
     fi
 
-    case "$scope" in
-        base)
+    echo "Select where to create the feature branch:"
+    echo "1) Base repository"
+    echo "2) Submodule repositories"
+    echo "3) Specific folder"
+    read -p "Enter your choice (1/2/3): " choice
+    
+    case "$choice" in
+        1)
             echo "Creating feature branch in base repository..."
             git checkout -b "feature/$feature_name" && git push -u origin "feature/$feature_name"
             ;;
-        submodule)
+        2)
             echo "Creating feature branch in submodules..."
             git submodule foreach --quiet --recursive "git checkout -b feature/$feature_name && git push -u origin feature/$feature_name"
             ;;
-        folder)
-            local folder_path="$3"
+        3)
+            local folder_path
+            read -p "Enter the folder path: " folder_path
             if [ -z "$folder_path" ] || [ ! -d "$folder_path" ]; then
-                echo "Valid folder path required! Usage: start_feature <feature_name> folder <path>"
+                echo "Valid folder path is required!"
                 return 1
             fi
             echo "Creating feature branch in $folder_path..."
             (cd "$folder_path" && git checkout -b "feature/$feature_name" && git push -u origin "feature/$feature_name")
             ;;
         *)
-            echo "Invalid scope! Use 'base', 'submodule', or 'folder <path>'"
+            echo "Invalid choice! Please select 1, 2, or 3."
             return 1
             ;;
     esac
 
-    echo "Feature branch 'feature/$feature_name' created successfully in $scope."
+    echo "Feature branch 'feature/$feature_name' created successfully."
 }
 
 
