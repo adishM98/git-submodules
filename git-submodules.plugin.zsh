@@ -99,7 +99,8 @@ status_all() {
 
 create_branch_interactive() {
     local branch_type="$1"
-    local branch_name scope folder_paths
+    local branch_name scope
+    local -a folder_paths  # Declare as an array explicitly for zsh
 
     # Prompt for branch name
     echo -n "Enter $branch_type name: "
@@ -130,7 +131,13 @@ create_branch_interactive() {
             ;;
         3)
             echo -n "Enter folder paths (separated by spaces): "
-            read -a folder_paths  # Read multiple folder paths into an array
+            read -r folder_input  # Read input as a single string
+            folder_paths=(${=folder_input})  # Split string into array using zsh syntax
+
+            if [ ${#folder_paths[@]} -eq 0 ]; then
+                echo "No valid folders provided!"
+                return 1
+            fi
 
             echo "Processing the following folders: ${folder_paths[@]}"
             for folder in "${folder_paths[@]}"; do
@@ -138,14 +145,9 @@ create_branch_interactive() {
                     echo "Creating $branch_type branch in $folder..."
                     (cd "$folder" && git checkout -b "$branch_type/$branch_name" && git push -u origin "$branch_type/$branch_name")
                 else
-                    echo "Error: Folder '$folder' does not exist or is invalid. Skipping..."
+                    echo "Error: Folder '$folder' does not exist. Skipping..."
                 fi
             done
-
-            if [ ${#folder_paths[@]} -eq 0 ]; then
-                echo "No valid folders were provided!"
-                return 1
-            fi
             ;;
         4)
             echo "Creating $branch_type branch in base repository and submodules..."
