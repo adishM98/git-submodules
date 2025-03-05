@@ -132,14 +132,20 @@ create_branch_interactive() {
             echo -n "Enter folder paths (separated by spaces): "
             read -a folder_paths  # Read multiple folder paths into an array
 
+            echo "Processing the following folders: ${folder_paths[@]}"
             for folder in "${folder_paths[@]}"; do
                 if [ -d "$folder" ]; then
                     echo "Creating $branch_type branch in $folder..."
                     (cd "$folder" && git checkout -b "$branch_type/$branch_name" && git push -u origin "$branch_type/$branch_name")
                 else
-                    echo "Warning: Folder '$folder' does not exist. Skipping..."
+                    echo "Error: Folder '$folder' does not exist or is invalid. Skipping..."
                 fi
             done
+
+            if [ ${#folder_paths[@]} -eq 0 ]; then
+                echo "No valid folders were provided!"
+                return 1
+            fi
             ;;
         4)
             echo "Creating $branch_type branch in base repository and submodules..."
