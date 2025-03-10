@@ -1,23 +1,52 @@
 #!/bin/zsh
 
 # Checkout all repositories (including submodules)
-checkout_all() {
-    local branch="$1"
-    if [ -z "$branch" ]; then
-        echo "Branch name required! Usage: checkout_all <branch>"
+checkout_interactive() {
+    local branch_name scope
+
+    # Prompt for branch name
+    echo -n "Enter the branch name to checkout: "
+    read branch_name
+
+    if [ -z "$branch_name" ]; then
+        echo "Branch name is required!"
         return 1
     fi
-    git checkout "$branch" && git pull
-    git submodule foreach --recursive " \
-        if git show-ref --verify --quiet refs/heads/$branch; then \
-            git checkout $branch && git pull; \
-        elif git ls-remote --exit-code origin $branch >/dev/null; then \
-            echo 'Tracking new remote branch $branch in submodule $(basename $PWD)'; \
-            git checkout -t origin/$branch && git pull; \
-        else \
-            echo 'Skipping submodule $(basename $PWD), branch $branch not found.'; \
-        fi"
+
+    # Prompt for checkout type
+    echo "Where do you want to checkout the '$branch_name' branch?"
+    echo "1) Base repository"
+    echo "2) Submodule repositories"
+    echo "3) Both (Base + Submodules)"
+    echo -n "Enter your choice (1/2/3): "
+    read scope
+
+    case "$scope" in
+        1)
+            echo "Checking out branch '$branch_name' in base repository..."
+            git checkout "$branch_name" && git pull
+            ;;
+        2)
+            echo "Checking out branch '$branch_name' in submodules..."
+            git submodule foreach --quiet --recursive "git checkout $branch_name && git pull"
+            ;;
+        3)
+            echo "Checking out branch '$branch_name' in base repository and submodules..."
+            git checkout "$branch_name" && git pull
+            git submodule foreach --quiet --recursive "git checkout $branch_name && git pull"
+            ;;
+        *)
+            echo "Invalid choice! Please enter 1, 2, or 3."
+            return 1
+            ;;
+    esac
+
+    echo "Checkout of '$branch_name' completed!"
 }
+
+# Wrapper function
+checkout_all() { checkout_interactive; }
+
 
 # Pull changes for all repositories
 pull_all() {
