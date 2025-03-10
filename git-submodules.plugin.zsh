@@ -32,7 +32,7 @@ checkout_interactive() {
         cd "$submodule_path" || exit
         if [ -n "$(git status --porcelain)" ]; then
             echo "Stashing changes in $submodule_path for branch $branch_name"
-            git stash save "stash-for-$branch_name"
+            git stash push -m "stash-for-$branch_name"
         else
             echo "No changes to stash in $submodule_path"
         fi
@@ -46,8 +46,8 @@ checkout_interactive() {
         local stash_entry
         stash_entry=$(git stash list | grep "stash-for-$branch_name" | head -1 | cut -d: -f1)
         if [ -n "$stash_entry" ]; then
-            echo "Applying stash $stash_entry in $submodule_path for branch $branch_name"
-            git stash apply "$stash_entry"
+            echo "Popping stash $stash_entry in $submodule_path for branch $branch_name"
+            git stash pop "$stash_entry"
         else
             echo "No stash found for branch $branch_name in $submodule_path"
         fi
