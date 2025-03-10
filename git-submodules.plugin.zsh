@@ -26,6 +26,28 @@ checkout_interactive() {
     echo -n "Enter your choice (1/2/3/4): "
     read scope
 
+    stash_base_repo() {
+        local branch_name="$1"
+        if [ -n "$(git status --porcelain)" ]; then
+            echo "Stashing changes in base repository for branch $branch_name"
+            git stash push -m "stash-for-$branch_name"
+        else
+            echo "No changes to stash in base repository"
+        fi
+    }
+
+    apply_stash_base_repo() {
+        local branch_name="$1"
+        local stash_entry
+        stash_entry=$(git stash list | grep "stash-for-$branch_name" | head -1 | cut -d: -f1)
+        if [ -n "$stash_entry" ]; then
+            echo "Popping stash $stash_entry in base repository for branch $branch_name"
+            git stash pop "$stash_entry"
+        else
+            echo "No stash found for branch $branch_name in base repository"
+        fi
+    }
+
     stash_submodule() {
         local submodule_path="$1"
         local branch_name="$2"
@@ -69,14 +91,16 @@ checkout_interactive() {
             git submodule foreach --quiet --recursive "git checkout $branch_name && git pull"
             ;;
         4)
-            echo "Handling submodule stashing before switching..."
+            echo "Handling stashing before switching..."
+            stash_base_repo "$current_branch"
             stash_submodule "frontend/ee" "$current_branch"
             stash_submodule "server/ee" "$current_branch"
 
             echo "Checking out branch '$branch_name' in base repository and submodules..."
             git checkout --recurse-submodules "$branch_name"
 
-            echo "Applying stash for submodules..."
+            echo "Applying stash for base repository and submodules..."
+            apply_stash_base_repo "$branch_name"
             apply_stash "frontend/ee" "$branch_name"
             apply_stash "server/ee" "$branch_name"
             ;;
@@ -91,6 +115,7 @@ checkout_interactive() {
 
 # Wrapper function
 checkout_all() { checkout_interactive; }
+
 
 
 
