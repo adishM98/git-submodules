@@ -13,13 +13,46 @@ checkout_interactive() {
         return 1
     fi
 
+    # Get the current branch
+    local current_branch
+    current_branch=$(git rev-parse --abbrev-ref HEAD)
+
     # Prompt for checkout type
     echo "Where do you want to checkout the '$branch_name' branch?"
     echo "1) Base repository"
     echo "2) Submodule repositories"
     echo "3) Both (Base + Submodules)"
-    echo -n "Enter your choice (1/2/3): "
+    echo "4) Both (Base + Submodules) with Stash Handling"
+    echo -n "Enter your choice (1/2/3/4): "
     read scope
+
+    stash_submodule() {
+        local submodule_path="$1"
+        local branch_name="$2"
+        cd "$submodule_path" || exit
+        if [ -n "$(git status --porcelain)" ]; then
+            echo "Stashing changes in $submodule_path for branch $branch_name"
+            git stash save "stash-for-$branch_name"
+        else
+            echo "No changes to stash in $submodule_path"
+        fi
+        cd - > /dev/null || exit
+    }
+
+    apply_stash() {
+        local submodule_path="$1"
+        local branch_name="$2"
+        cd "$submodule_path" || exit
+        local stash_entry
+        stash_entry=$(git stash list | grep "stash-for-$branch_name" | head -1 | cut -d: -f1)
+        if [ -n "$stash_entry" ]; then
+            echo "Applying stash $stash_entry in $submodule_path for branch $branch_name"
+            git stash apply "$stash_entry"
+        else
+            echo "No stash found for branch $branch_name in $submodule_path"
+        fi
+        cd - > /dev/null || exit
+    }
 
     case "$scope" in
         1)
@@ -35,8 +68,20 @@ checkout_interactive() {
             git checkout "$branch_name" && git pull
             git submodule foreach --quiet --recursive "git checkout $branch_name && git pull"
             ;;
+        4)
+            echo "Handling submodule stashing before switching..."
+            stash_submodule "frontend/ee" "$current_branch"
+            stash_submodule "server/ee" "$current_branch"
+
+            echo "Checking out branch '$branch_name' in base repository and submodules..."
+            git checkout --recurse-submodules "$branch_name"
+
+            echo "Applying stash for submodules..."
+            apply_stash "frontend/ee" "$branch_name"
+            apply_stash "server/ee" "$branch_name"
+            ;;
         *)
-            echo "Invalid choice! Please enter 1, 2, or 3."
+            echo "Invalid choice! Please enter 1, 2, 3, or 4."
             return 1
             ;;
     esac
@@ -46,6 +91,7 @@ checkout_interactive() {
 
 # Wrapper function
 checkout_all() { checkout_interactive; }
+
 
 
 # Pull changes for all repositories
