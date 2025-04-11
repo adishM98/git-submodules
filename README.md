@@ -46,6 +46,23 @@ This plugin provides useful Git commands for managing submodules easily.
 | `start_release`                     | Create a `release/` branch interactively            |
 | `start_sprint`                      | Create a `sprint/` branch interactively             |
 
+### `merge_all` Usage
+
+This command lets you merge changes from a base branch (e.g., `main` or `develop`) into your current working branch across the main repo and submodules. It replaces any use of `git rebase` with `git merge` and supports optional stash handling to preserve local changes.
+
+You'll be prompted to:
+
+- Enter the base branch to merge from
+- Choose whether to merge into:
+  - Base repository
+  - Submodules (`frontend/ee`, `server/ee`, or both)
+  - Both base and submodules
+  - Both with stash handling (recommended when you have local changes)
+
+Merge conflicts (if any) will need to be resolved manually by the developer.
+
+
+
 ### Updating the Plugin
 
 Can manually check for updates and install them by running:
