@@ -38,6 +38,7 @@ This plugin provides useful Git commands for managing submodules easily.
 | `commit_all "<message>"`            | Commit changes across repositories                   |
 | `push_all`                          | Push changes across repositories                     |
 | `status_all`                        | Show Git status for all repositories                 |
+| `merge_all`                         | Merge changes from base branch into base/submodule branches 
 | `update_git_submodules_plugin`      | Check for updates and update the plugin              |
 | `start_branch`                      | Create a branch interactively in base, submodules, or folders |
 | `start_feature`                     | Create a `feature/` branch interactively            |

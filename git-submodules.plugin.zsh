@@ -276,6 +276,146 @@ start_branch() { create_branch_interactive ""; }
 
 
 
+merge_all() {
+    local base_branch current_branch scope
+
+    echo -n "Enter the base branch to merge from: "
+    read base_branch
+
+    if [ -z "$base_branch" ]; then
+        echo "Base branch is required!"
+        return 1
+    fi
+
+    current_branch=$(git rev-parse --abbrev-ref HEAD)
+
+    echo "Where do you want to merge '$base_branch' into '$current_branch'?"
+    echo "1) Base repository"
+    echo "2) Submodule repositories"
+    echo "3) Both (Base + Submodules)"
+    echo "4) Both (Base + Submodules) with Stash Handling"
+    echo -n "Enter your choice (1/2/3/4): "
+    read scope
+
+    stash_submodule() {
+        local submodule_path="$1"
+        cd "$submodule_path" || exit
+        if [ -n "$(git status --porcelain)" ]; then
+            echo "Stashing changes in $submodule_path for branch $current_branch"
+            git stash push -m "stash-for-$current_branch"
+        else
+            echo "No changes to stash in $submodule_path"
+        fi
+        cd - > /dev/null || exit
+    }
+
+    apply_stash_submodule() {
+        local submodule_path="$1"
+        cd "$submodule_path" || exit
+        local stash_entry
+        stash_entry=$(git stash list | grep "stash-for-$current_branch" | head -1 | cut -d: -f1)
+        if [ -n "$stash_entry" ]; then
+            echo "Popping stash $stash_entry in $submodule_path for branch $current_branch"
+            git stash pop "$stash_entry"
+        else
+            echo "No stash found for branch $current_branch in $submodule_path"
+        fi
+        cd - > /dev/null || exit
+    }
+
+    stash_base_repo() {
+        if [ -n "$(git status --porcelain)" ]; then
+            echo "Stashing changes in base repository for branch $current_branch"
+            git stash push -m "stash-for-$current_branch"
+        else
+            echo "No changes to stash in base repository"
+        fi
+    }
+
+    apply_stash_base_repo() {
+        local stash_entry
+        stash_entry=$(git stash list | grep "stash-for-$current_branch" | head -1 | cut -d: -f1)
+        if [ -n "$stash_entry" ]; then
+            echo "Popping stash $stash_entry in base repository for branch $current_branch"
+            git stash pop "$stash_entry"
+        else
+            echo "No stash found for branch $current_branch in base repository"
+        fi
+    }
+
+    git fetch origin "$base_branch"
+    case "$scope" in
+        1)
+            echo "Merging base repository..."
+            git merge origin/"$base_branch"
+            ;;
+        2)
+            echo "Which submodule(s) do you want to merge into?"
+            echo "1) frontend/ee"
+            echo "2) server/ee"
+            echo "3) Both"
+            echo -n "Enter your choice (1/2/3): "
+            read submodule_choice
+
+            case "$submodule_choice" in
+                1)
+                    echo "Merging into frontend/ee..."
+                    (cd frontend/ee && git fetch origin "$base_branch" && git merge origin/"$base_branch")
+                    ;;
+                2)
+                    echo "Merging into server/ee..."
+                    (cd server/ee && git fetch origin "$base_branch" && git merge origin/"$base_branch")
+                    ;;
+                3)
+                    echo "Merging into frontend/ee..."
+                    (cd frontend/ee && git fetch origin "$base_branch" && git merge origin/"$base_branch")
+                    echo "Merging into server/ee..."
+                    (cd server/ee && git fetch origin "$base_branch" && git merge origin/"$base_branch")
+                    ;;
+                *)
+                    echo "Invalid submodule choice. Please enter 1, 2, or 3."
+                    return 1
+                    ;;
+            esac
+            ;;
+        3)
+            echo "Merging base repository..."
+            git merge origin/"$base_branch"
+            echo "Merging into frontend/ee..."
+            (cd frontend/ee && git fetch origin "$base_branch" && git merge origin/"$base_branch")
+            echo "Merging into server/ee..."
+            (cd server/ee && git fetch origin "$base_branch" && git merge origin/"$base_branch")
+            ;;
+        4)
+            echo "Stashing changes before merge..."
+            stash_base_repo
+            stash_submodule "frontend/ee"
+            stash_submodule "server/ee"
+
+            echo "Merging base repository..."
+            git merge origin/"$base_branch"
+
+            echo "Merging into frontend/ee..."
+            (cd frontend/ee && git fetch origin "$base_branch" && git merge origin/"$base_branch")
+
+            echo "Merging into server/ee..."
+            (cd server/ee && git fetch origin "$base_branch" && git merge origin/"$base_branch")
+
+            echo "Applying stashes after merge..."
+            apply_stash_base_repo
+            apply_stash_submodule "frontend/ee"
+            apply_stash_submodule "server/ee"
+            ;;
+        *)
+            echo "Invalid choice! Please enter 1, 2, 3, or 4."
+            return 1
+            ;;
+    esac
+
+    echo "Merge from '$base_branch' completed!"
+}
+
+
 # Define the plugin directory
 GIT_SUBMODULES_PLUGIN_DIR="${0:A:h}"
 
