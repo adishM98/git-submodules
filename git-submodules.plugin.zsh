@@ -212,10 +212,36 @@ commit_all() {
     git submodule foreach --quiet --recursive "git commit -m '$message'"
 }
 
-# Push all changes
+# Push all changes (base + submodules), setting upstream if needed
 push_all() {
-    git push
-    git submodule foreach --quiet --recursive "git push"
+    echo "🔼 Pushing base repository..."
+    current_branch=$(git symbolic-ref --short HEAD 2>/dev/null)
+    upstream_branch=$(git rev-parse --abbrev-ref --symbolic-full-name "@{u}" 2>/dev/null)
+
+    if [ -z "$upstream_branch" ]; then
+        echo "⚠️  No upstream set for '$current_branch'. Setting upstream to origin/$current_branch..."
+        git push --set-upstream origin "$current_branch"
+    else
+        git push
+    fi
+
+    echo "🔼 Pushing submodules..."
+    git submodule foreach --quiet --recursive '
+        branch=$(git symbolic-ref --short HEAD 2>/dev/null)
+
+        if [ -z "$branch" ]; then
+            echo "⚠️  Submodule $(basename $PWD) is in detached HEAD. Skipping..."
+        else
+            upstream=$(git rev-parse --abbrev-ref --symbolic-full-name "@{u}" 2>/dev/null)
+            if [ -z "$upstream" ]; then
+                echo "⚠️  No upstream for $branch in $(basename $PWD). Setting upstream to origin/$branch..."
+                git push --set-upstream origin "$branch"
+            else
+                echo "Pushing $branch in $(basename $PWD)..."
+                git push
+            fi
+        fi
+    '
 }
 
 # Show status of all repositories
