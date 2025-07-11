@@ -144,49 +144,32 @@ add_all() {
 # Create a new branch across repositories
 create_branch_all() {
     local branch_name="$1"
-    local should_push="$2"
-
     if [ -z "$branch_name" ]; then
-        echo "Branch name required! Usage: create_branch_all <branch_name> [--push]"
+        echo "Branch name required! Usage: create_branch_all <branch_name>"
         return 1
     fi
-
     git checkout -b "$branch_name"
-    [ "$should_push" = "--push" ] && git push -u origin "$branch_name"
-
-    git submodule foreach --quiet --recursive "
-        git checkout -b $branch_name
-        [ \"$should_push\" = \"--push\" ] && git push -u origin $branch_name
-    "
+    git submodule foreach --quiet --recursive "git checkout -b $branch_name"
 }
 
-# Helper for prefixed branches
+# Helper function to create prefixed branches
 create_prefixed_branch() {
     local prefix="$1"
     local name="$2"
-    local should_push="$3"
-
     if [ -z "$name" ]; then
-        echo "Name required! Usage: create_${prefix}_all <name> [--push]"
+        echo "Name required! Usage: create_${prefix}_all <name>"
         return 1
     fi
-
     local branch="$prefix/$name"
-
     git checkout -b "$branch"
-    [ "$should_push" = "--push" ] && git push -u origin "$branch"
-
-    git submodule foreach --quiet --recursive "
-        git checkout -b $branch
-        [ \"$should_push\" = \"--push\" ] && git push -u origin $branch
-    "
+    git submodule foreach --quiet --recursive "git checkout -b $branch"
 }
 
-create_feature_all() { create_prefixed_branch "feature" "$1" "$2"; }
-create_hotfix_all()  { create_prefixed_branch "hot-fix" "$1" "$2"; }
-create_release_all() { create_prefixed_branch "release" "$1" "$2"; }
-create_revamp_all()  { create_prefixed_branch "revamp" "$1" "$2"; }
-create_sprint_all()  { create_prefixed_branch "sprint" "$1" "$2"; }
+create_feature_all() { create_prefixed_branch "feature" "$1"; }
+create_hotfix_all()  { create_prefixed_branch "hot-fix" "$1"; }
+create_release_all() { create_prefixed_branch "release" "$1"; }
+create_revamp_all()  { create_prefixed_branch "revamp" "$1"; }
+create_sprint_all()  { create_prefixed_branch "sprint" "$1"; }
 
 
 # Create a new tag across repositories
