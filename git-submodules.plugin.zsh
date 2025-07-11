@@ -121,19 +121,37 @@ checkout_all() { checkout_interactive; }
 pull_all() {
     echo "Fetching and pulling base repository..."
     git fetch --all
-    git pull
+
+    # Attempt to get the current branch and remote tracking info
+    current_branch=$(git symbolic-ref --short HEAD 2>/dev/null)
+    upstream_branch=$(git rev-parse --abbrev-ref --symbolic-full-name "@{u}" 2>/dev/null)
+
+    if [ -z "$upstream_branch" ]; then
+        echo "⚠️  No upstream tracking branch set for '$current_branch'."
+        echo "To fix: git branch --set-upstream-to=origin/<branch> $current_branch"
+    else
+        echo "Pulling latest changes from $upstream_branch..."
+        git pull
+    fi
 
     echo "Pulling changes in submodules..."
     git submodule foreach --quiet --recursive '
         branch=$(git symbolic-ref --short HEAD 2>/dev/null)
+
         if [ -z "$branch" ]; then
-            echo "Submodule $(basename $PWD) is in detached HEAD. Skipping..."
+            echo "⚠️  Submodule $(basename $PWD) is in detached HEAD. Skipping..."
         else
-            echo "Pulling latest changes for branch $branch in $(basename $PWD)..."
-            git fetch origin "$branch" && git pull origin "$branch"
+            echo "Fetching and pulling branch $branch in $(basename $PWD)..."
+            git fetch origin "$branch" 2>/dev/null
+            if git ls-remote --exit-code origin "$branch" >/dev/null 2>&1; then
+                git pull origin "$branch"
+            else
+                echo "⚠️  Remote branch $branch not found in $(basename $PWD). Skipping pull."
+            fi
         fi
     '
 }
+
 
 # Stage all changes
 add_all() {
