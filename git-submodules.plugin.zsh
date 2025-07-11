@@ -117,14 +117,22 @@ checkout_interactive() {
 checkout_all() { checkout_interactive; }
 
 
-
-
-# Pull changes for all repositories
+# Pull changes for all repositories (base + submodules)
 pull_all() {
+    echo "Fetching and pulling base repository..."
     git fetch --all
     git pull
-    git submodule update --init --recursive
-    git submodule foreach 'git fetch --all && git pull'
+
+    echo "Pulling changes in submodules..."
+    git submodule foreach --quiet --recursive '
+        branch=$(git symbolic-ref --short HEAD 2>/dev/null)
+        if [ -z "$branch" ]; then
+            echo "Submodule $(basename $PWD) is in detached HEAD. Skipping..."
+        else
+            echo "Pulling latest changes for branch $branch in $(basename $PWD)..."
+            git fetch origin "$branch" && git pull origin "$branch"
+        fi
+    '
 }
 
 # Stage all changes
@@ -133,35 +141,130 @@ add_all() {
     git submodule foreach 'git add -A'
 }
 
-# Create a new branch across repositories
+# Create a new branch interactively across base and/or submodules
 create_branch_all() {
-    local branch_name="$1"
+    local branch_name scope push_choice
+
+    echo -n "Enter the branch name to create: "
+    read branch_name
+
     if [ -z "$branch_name" ]; then
-        echo "Branch name required! Usage: create_branch_all <branch_name>"
+        echo "Branch name is required!"
         return 1
     fi
-    git checkout -b "$branch_name" && git push -u origin "$branch_name"
-    git submodule foreach --quiet --recursive "git checkout -b $branch_name && git push -u origin $branch_name"
+
+    echo "Where do you want to create the '$branch_name' branch?"
+    echo "1) Base repository"
+    echo "2) Submodule repositories"
+    echo "3) Both (Base + Submodules)"
+    echo -n "Enter your choice (1/2/3): "
+    read scope
+
+    echo -n "Do you want to push the branch to remote? (y/N): "
+    read push_choice
+    local should_push=""
+    [[ "$push_choice" =~ ^[Yy]$ ]] && should_push="--push"
+
+    case "$scope" in
+        1)
+            echo "Creating branch in base repository..."
+            git checkout -b "$branch_name"
+            [ "$should_push" = "--push" ] && git push -u origin "$branch_name"
+            ;;
+        2)
+            echo "Creating branch in submodules..."
+            git submodule foreach --quiet --recursive "
+                git checkout -b $branch_name
+                [ \"$should_push\" = \"--push\" ] && git push -u origin $branch_name
+            "
+            ;;
+        3)
+            echo "Creating branch in base repository..."
+            git checkout -b "$branch_name"
+            [ "$should_push" = "--push" ] && git push -u origin "$branch_name"
+
+            echo "Creating branch in submodules..."
+            git submodule foreach --quiet --recursive "
+                git checkout -b $branch_name
+                [ \"$should_push\" = \"--push\" ] && git push -u origin $branch_name
+            "
+            ;;
+        *)
+            echo "Invalid choice! Please enter 1, 2, or 3."
+            return 1
+            ;;
+    esac
+
+    echo "Branch '$branch_name' created successfully!"
 }
 
-# Helper function to create prefixed branches
-create_prefixed_branch() {
+
+# Interactive prefixed branch creation
+create_prefixed_branch_interactive() {
     local prefix="$1"
-    local name="$2"
-    if [ -z "$name" ]; then
-        echo "Name required! Usage: create_${prefix}_all <name>"
+    local branch_name scope push_choice should_push=""
+    local full_branch
+
+    echo -n "Enter $prefix branch name: "
+    read branch_name
+
+    if [ -z "$branch_name" ]; then
+        echo "Branch name is required!"
         return 1
     fi
-    local branch="$prefix/$name"
-    git checkout -b "$branch" && git push -u origin "$branch"
-    git submodule foreach --quiet --recursive "git checkout -b $branch && git push -u origin $branch"
+
+    full_branch="$prefix/$branch_name"
+
+    echo "Where do you want to create the '$full_branch' branch?"
+    echo "1) Base repository"
+    echo "2) Submodule repositories"
+    echo "3) Both (Base + Submodules)"
+    echo -n "Enter your choice (1/2/3): "
+    read scope
+
+    echo -n "Do you want to push the branch to remote? (y/N): "
+    read push_choice
+    [[ "$push_choice" =~ ^[Yy]$ ]] && should_push="--push"
+
+    case "$scope" in
+        1)
+            echo "Creating $full_branch in base repository..."
+            git checkout -b "$full_branch"
+            [ "$should_push" = "--push" ] && git push -u origin "$full_branch"
+            ;;
+        2)
+            echo "Creating $full_branch in submodules..."
+            git submodule foreach --quiet --recursive "
+                git checkout -b $full_branch
+                [ \"$should_push\" = \"--push\" ] && git push -u origin $full_branch
+            "
+            ;;
+        3)
+            echo "Creating $full_branch in base repository..."
+            git checkout -b "$full_branch"
+            [ "$should_push" = "--push" ] && git push -u origin "$full_branch"
+
+            echo "Creating $full_branch in submodules..."
+            git submodule foreach --quiet --recursive "
+                git checkout -b $full_branch
+                [ \"$should_push\" = \"--push\" ] && git push -u origin $full_branch
+            "
+            ;;
+        *)
+            echo "Invalid choice! Please enter 1, 2, or 3."
+            return 1
+            ;;
+    esac
+
+    echo "Branch '$full_branch' created successfully!"
 }
 
-create_feature_all() { create_prefixed_branch "feature" "$1"; }
-create_hotfix_all() { create_prefixed_branch "hot-fix" "$1"; }
-create_release_all() { create_prefixed_branch "release" "$1"; }
-create_revamp_all() { create_prefixed_branch "revamp" "$1"; }
-create_sprint_all() { create_prefixed_branch "sprint" "$1"; }
+create_feature_all() { create_prefixed_branch_interactive "feature"; }
+create_hotfix_all()  { create_prefixed_branch_interactive "hot-fix"; }
+create_release_all() { create_prefixed_branch_interactive "release"; }
+create_revamp_all()  { create_prefixed_branch_interactive "revamp"; }
+create_sprint_all()  { create_prefixed_branch_interactive "sprint"; }
+
 
 # Create a new tag across repositories
 create_tag_all() {
@@ -247,7 +350,7 @@ create_branch_interactive() {
             for folder in "${folder_paths[@]}"; do
                 if [ -d "$folder" ]; then
                     echo "Creating branch '$branch_name' in $folder..."
-                    (cd "$folder" && git checkout -b "$branch_name" && git push -u origin "$branch_name")
+                    (cd "$folder" && git checkout -b "$branch_name")
                 else
                     echo "Error: Folder '$folder' does not exist. Skipping..."
                 fi
@@ -256,7 +359,7 @@ create_branch_interactive() {
         4)
             echo "Creating branch '$branch_name' in base repository and submodules..."
             git checkout -b "$branch_name" && git push -u origin "$branch_name"
-            git submodule foreach --quiet --recursive "git checkout -b $branch_name && git push -u origin $branch_name"
+            git submodule foreach --quiet --recursive "git checkout -b $branch_name"
             ;;
         *)
             echo "Invalid choice! Please enter 1, 2, 3, or 4."
