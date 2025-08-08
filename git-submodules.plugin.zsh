@@ -6,7 +6,7 @@
 #=============================================================================
 
 # Global configuration
-GIT_SUBMODULES_PLUGIN_DIR="${0:A:h}"
+GIT_SUBMODULES_PLUGIN_DIR="${${(%):-%x}:A:h}"
 GIT_SUBMODULES_DRY_RUN=${GIT_SUBMODULES_DRY_RUN:-false}
 GIT_SUBMODULES_VERBOSE=${GIT_SUBMODULES_VERBOSE:-true}
 GIT_SUBMODULES_DEFAULT_SUBMODULES=("frontend/ee" "server/ee")
@@ -44,7 +44,7 @@ _validate_branch_name() {
         return 1
     fi
     # Check for invalid characters in branch names
-    if [[ "$branch" =~ [[:space:]] || "$branch" =~ [\~\^\:\?\*\[] ]]; then
+    if [[ "$branch" =~ [[:space:]] || "$branch" =~ [\~\^\:\?\*\[\\] ]]; then
         _log_error "Invalid branch name: '$branch'"
         return 1
     fi
@@ -155,7 +155,7 @@ _stash_changes() {
     if _has_unstaged_changes "."; then
         local stash_message="stash-for-${branch}-$(date +%s)"
         _log_info "Stashing changes in ${repo_name} for branch '$branch'"
-        _safe_git "stash push -m '$stash_message'"
+        _safe_git "stash push -m \"$stash_message\""
     else
         _log_info "No changes to stash in ${repo_name}"
     fi
@@ -184,7 +184,7 @@ _apply_stash() {
     stash_entry=$(git stash list | grep "stash-for-$branch" | head -1 | cut -d: -f1)
     if [[ -n "$stash_entry" ]]; then
         _log_info "Applying stash $stash_entry in ${repo_name} for branch '$branch'"
-        _safe_git "stash pop '$stash_entry'"
+        _safe_git "stash pop $stash_entry"
     else
         _log_info "No stash found for branch '$branch' in ${repo_name}"
     fi
@@ -224,7 +224,7 @@ checkout_interactive() {
     case "$scope" in
         1)
             _log_info "Checking out branch '$branch_name' in base repository..."
-            _safe_git "checkout '$branch_name'" && _safe_git "pull"
+            _safe_git "checkout $branch_name" && _safe_git "pull"
             ;;
         2)
             _log_info "Checking out branch '$branch_name' in submodules..."
@@ -234,12 +234,12 @@ checkout_interactive() {
                 _log_warning "No submodules found"
                 return 1
             fi
-            _safe_git "submodule foreach --quiet --recursive 'git checkout \"$branch_name\" && git pull'"
+            _safe_git "submodule foreach --quiet --recursive 'git checkout $branch_name && git pull'"
             ;;
         3)
             _log_info "Checking out branch '$branch_name' in base repository and submodules..."
-            _safe_git "checkout '$branch_name'" && _safe_git "pull" &&
-            _safe_git "submodule foreach --quiet --recursive 'git checkout \"$branch_name\" && git pull'"
+            _safe_git "checkout $branch_name" && _safe_git "pull" &&
+            _safe_git "submodule foreach --quiet --recursive 'git checkout $branch_name && git pull'"
             ;;
         4)
             _log_info "Handling stashing before switching..."
@@ -252,7 +252,7 @@ checkout_interactive() {
             done
             
             _log_info "Checking out branch '$branch_name' in base repository and submodules..."
-            _safe_git "checkout --recurse-submodules '$branch_name'"
+            _safe_git "checkout --recurse-submodules $branch_name"
             
             _log_info "Applying stashes..."
             _apply_stash "." "$branch_name"
@@ -317,9 +317,9 @@ pull_all() {
         fi
         
         _log_info "Fetching and pulling branch $sub_branch in $submodule..."
-        if _safe_git "fetch origin '$sub_branch'" 2>/dev/null; then
+        if _safe_git "fetch origin $sub_branch" 2>/dev/null; then
             if git ls-remote --exit-code origin "$sub_branch" >/dev/null 2>&1; then
-                _safe_git "pull origin '$sub_branch'"
+                _safe_git "pull origin $sub_branch"
             else
                 _log_warning "Remote branch $sub_branch not found in $submodule. Skipping pull."
             fi
@@ -375,7 +375,7 @@ create_branch_all() {
     fi
     
     _log_info "Creating branch '$branch_name' in base repository..."
-    _safe_git "checkout -b '$branch_name'" || return 1
+    _safe_git "checkout -b $branch_name" || return 1
     
     local submodules
     submodules=($(_get_submodule_paths))
@@ -389,7 +389,7 @@ create_branch_all() {
     for submodule in "${submodules[@]}"; do
         if _validate_directory "$submodule"; then
             _log_info "Creating branch '$branch_name' in $submodule..."
-            if ! (cd "$submodule" && _safe_git "checkout -b '$branch_name'"); then
+            if ! (cd "$submodule" && _safe_git "checkout -b $branch_name"); then
                 failed_submodules+=("$submodule")
             fi
         fi
@@ -443,7 +443,7 @@ create_tag_all() {
     fi
     
     _log_info "Creating and pushing tag '$tag_name' in base repository..."
-    _safe_git "tag '$tag_name'" && _safe_git "push origin '$tag_name'" || return 1
+    _safe_git "tag $tag_name" && _safe_git "push origin $tag_name" || return 1
     
     local submodules
     submodules=($(_get_submodule_paths))
@@ -457,7 +457,7 @@ create_tag_all() {
     for submodule in "${submodules[@]}"; do
         if _validate_directory "$submodule"; then
             _log_info "Creating and pushing tag '$tag_name' in $submodule..."
-            if ! (cd "$submodule" && _safe_git "tag '$tag_name'" && _safe_git "push origin '$tag_name'"); then
+            if ! (cd "$submodule" && _safe_git "tag $tag_name" && _safe_git "push origin $tag_name"); then
                 failed_submodules+=("$submodule")
             fi
         fi
@@ -489,7 +489,7 @@ commit_all() {
     fi
     
     _log_info "Committing changes in base repository..."
-    _safe_git "commit -m '$message'" || return 1
+    _safe_git "commit -m \"$message\"" || return 1
     
     local submodules
     submodules=($(_get_submodule_paths))
@@ -503,7 +503,7 @@ commit_all() {
     for submodule in "${submodules[@]}"; do
         if _validate_directory "$submodule"; then
             _log_info "Committing changes in $submodule..."
-            if ! (cd "$submodule" && _has_unstaged_changes "." && _safe_git "commit -m '$message'"); then
+            if ! (cd "$submodule" && _has_unstaged_changes "." && _safe_git "commit -m \"$message\""); then
                 if ! _has_unstaged_changes "$submodule"; then
                     _log_info "No changes to commit in $submodule"
                 else
@@ -532,7 +532,7 @@ push_all() {
     
     if [[ -z "$upstream_branch" ]]; then
         _log_warning "No upstream set for '$current_branch'. Setting upstream to origin/$current_branch..."
-        _safe_git "push --set-upstream origin '$current_branch'" || return 1
+        _safe_git "push --set-upstream origin $current_branch" || return 1
     else
         _safe_git "push" || return 1
     fi
@@ -565,7 +565,7 @@ push_all() {
             sub_upstream=$(git rev-parse --abbrev-ref --symbolic-full-name "@{u}" 2>/dev/null)
             if [[ -z "$sub_upstream" ]]; then
                 _log_warning "No upstream for $sub_branch in $submodule. Setting upstream to origin/$sub_branch..."
-                if ! _safe_git "push --set-upstream origin '$sub_branch'"; then
+                if ! _safe_git "push --set-upstream origin $sub_branch"; then
                     failed_submodules+=("$submodule")
                 fi
             else
@@ -641,7 +641,7 @@ create_branch_interactive() {
     case "$scope" in
         1)
             _log_info "Creating branch '$branch_name' in base repository..."
-            _safe_git "checkout -b '$branch_name'" && _safe_git "push -u origin '$branch_name'"
+            _safe_git "checkout -b $branch_name" && _safe_git "push -u origin $branch_name"
             ;;
         2)
             _log_info "Creating branch '$branch_name' in submodules..."
@@ -656,7 +656,7 @@ create_branch_interactive() {
             local failed_submodules=()
             for submodule in "${submodules[@]}"; do
                 if _validate_directory "$submodule"; then
-                    if ! (cd "$submodule" && _safe_git "checkout -b '$branch_name'" && _safe_git "push -u origin '$branch_name'"); then
+                    if ! (cd "$submodule" && _safe_git "checkout -b $branch_name" && _safe_git "push -u origin $branch_name"); then
                         failed_submodules+=("$submodule")
                     fi
                 fi
@@ -682,7 +682,7 @@ create_branch_interactive() {
             for folder in "${folder_paths[@]}"; do
                 if _validate_directory "$folder"; then
                     _log_info "Creating branch '$branch_name' in $folder..."
-                    if ! (cd "$folder" && _safe_git "checkout -b '$branch_name'"); then
+                    if ! (cd "$folder" && _safe_git "checkout -b $branch_name"); then
                         failed_folders+=("$folder")
                     fi
                 else
@@ -697,7 +697,7 @@ create_branch_interactive() {
             ;;
         4)
             _log_info "Creating branch '$branch_name' in base repository and submodules..."
-            _safe_git "checkout -b '$branch_name'" && _safe_git "push -u origin '$branch_name'" || return 1
+            _safe_git "checkout -b $branch_name" && _safe_git "push -u origin $branch_name" || return 1
             
             local submodules
             submodules=($(_get_submodule_paths))
@@ -705,7 +705,7 @@ create_branch_interactive() {
             local failed_submodules=()
             for submodule in "${submodules[@]}"; do
                 if _validate_directory "$submodule"; then
-                    if ! (cd "$submodule" && _safe_git "checkout -b '$branch_name'"); then
+                    if ! (cd "$submodule" && _safe_git "checkout -b $branch_name"); then
                         failed_submodules+=("$submodule")
                     fi
                 fi
@@ -755,12 +755,12 @@ merge_all() {
     read scope
     
     # Fetch the base branch first
-    _safe_git "fetch origin '$base_branch'" || return 1
+    _safe_git "fetch origin $base_branch" || return 1
     
     case "$scope" in
         1)
             _log_info "Merging base repository..."
-            _safe_git "merge origin/'$base_branch'"
+            _safe_git "merge origin/$base_branch"
             ;;
         2)
             local submodules
@@ -785,7 +785,7 @@ merge_all() {
                 for submodule in "${submodules[@]}"; do
                     if _validate_directory "$submodule"; then
                         _log_info "Merging into $submodule..."
-                        if ! (cd "$submodule" && _safe_git "fetch origin '$base_branch'" && _safe_git "merge origin/'$base_branch'"); then
+                        if ! (cd "$submodule" && _safe_git "fetch origin $base_branch" && _safe_git "merge origin/$base_branch"); then
                             failed_submodules+=("$submodule")
                         fi
                     fi
@@ -800,7 +800,7 @@ merge_all() {
                 local selected_submodule="${submodules[$((submodule_choice-1))]}"
                 if _validate_directory "$selected_submodule"; then
                     _log_info "Merging into $selected_submodule..."
-                    (cd "$selected_submodule" && _safe_git "fetch origin '$base_branch'" && _safe_git "merge origin/'$base_branch'")
+                    (cd "$selected_submodule" && _safe_git "fetch origin $base_branch" && _safe_git "merge origin/$base_branch")
                 fi
             else
                 _log_error "Invalid submodule choice"
@@ -809,7 +809,7 @@ merge_all() {
             ;;
         3)
             _log_info "Merging base repository..."
-            _safe_git "merge origin/'$base_branch'" || return 1
+            _safe_git "merge origin/$base_branch" || return 1
             
             local submodules
             submodules=($(_get_submodule_paths))
@@ -818,7 +818,7 @@ merge_all() {
             for submodule in "${submodules[@]}"; do
                 if _validate_directory "$submodule"; then
                     _log_info "Merging into $submodule..."
-                    if ! (cd "$submodule" && _safe_git "fetch origin '$base_branch'" && _safe_git "merge origin/'$base_branch'"); then
+                    if ! (cd "$submodule" && _safe_git "fetch origin $base_branch" && _safe_git "merge origin/$base_branch"); then
                         failed_submodules+=("$submodule")
                     fi
                 fi
@@ -841,13 +841,13 @@ merge_all() {
             done
             
             _log_info "Merging base repository..."
-            _safe_git "merge origin/'$base_branch'" || return 1
+            _safe_git "merge origin/$base_branch" || return 1
             
             local failed_submodules=()
             for submodule in "${submodules[@]}"; do
                 if _validate_directory "$submodule"; then
                     _log_info "Merging into $submodule..."
-                    if ! (cd "$submodule" && _safe_git "fetch origin '$base_branch'" && _safe_git "merge origin/'$base_branch'"); then
+                    if ! (cd "$submodule" && _safe_git "fetch origin $base_branch" && _safe_git "merge origin/$base_branch"); then
                         failed_submodules+=("$submodule")
                     fi
                 fi
