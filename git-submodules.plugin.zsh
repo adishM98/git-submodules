@@ -563,6 +563,380 @@ merge_all() {
 }
 
 #=============================================================================
+# Smart Commit Generation
+#=============================================================================
+
+# Analyze staged changes and suggest conventional commit messages
+generate_commit_message() {
+    local files_changed=$(git diff --cached --name-only)
+    local files_added=$(git diff --cached --name-only --diff-filter=A)
+    local files_modified=$(git diff --cached --name-only --diff-filter=M)
+    local files_deleted=$(git diff --cached --name-only --diff-filter=D)
+    
+    if [[ -z "$files_changed" ]]; then
+        _log_warning "No staged changes found. Run 'add_all' first."
+        return 1
+    fi
+    
+    echo "\n🤖 === Smart Commit Message Generator === 🤖"
+    echo "📂 Files changed: $(echo "$files_changed" | wc -l | tr -d ' ')"
+    
+    # Analyze file patterns and suggest commit type
+    local commit_type="feat"
+    local scope=""
+    local description=""
+    
+    # Determine commit type based on files
+    if echo "$files_changed" | grep -q -E "\.(test|spec)\.(js|ts|py|go)$"; then
+        commit_type="test"
+        description="add/update tests"
+    elif echo "$files_changed" | grep -q -E "README|CHANGELOG|\.md$"; then
+        commit_type="docs"
+        description="update documentation"
+    elif echo "$files_changed" | grep -q -E "package\.json|requirements\.txt|go\.mod|Cargo\.toml"; then
+        commit_type="build"
+        description="update dependencies"
+    elif echo "$files_changed" | grep -q -E "\.config|\.env|settings"; then
+        commit_type="config"
+        description="update configuration"
+    elif [[ $(echo "$files_added" | wc -l | tr -d ' ') -gt 0 ]]; then
+        commit_type="feat"
+        description="add new functionality"
+    elif [[ $(echo "$files_modified" | wc -l | tr -d ' ') -gt 0 ]]; then
+        if echo "$files_changed" | grep -q -E "fix|bug|error"; then
+            commit_type="fix"
+            description="resolve issues"
+        else
+            commit_type="feat"
+            description="enhance functionality"
+        fi
+    fi
+    
+    # Determine scope from directory structure
+    local main_dir=$(echo "$files_changed" | head -1 | cut -d'/' -f1)
+    case "$main_dir" in
+        "frontend"|"client"|"ui"|"web") scope="frontend" ;;
+        "backend"|"server"|"api") scope="backend" ;;
+        "mobile"|"app"|"ios"|"android") scope="mobile" ;;
+        "docs"|"documentation") scope="docs" ;;
+        "tests"|"test"|"spec") scope="test" ;;
+        *) scope="" ;;
+    esac
+    
+    # Generate suggestions
+    echo "\n💡 Suggested commit messages:"
+    local base_msg="$commit_type"
+    [[ -n "$scope" ]] && base_msg="$commit_type($scope)"
+    
+    echo "1️⃣  $base_msg: $description"
+    echo "2️⃣  $base_msg: $(echo "$files_changed" | head -1 | sed 's|.*/||' | sed 's|\.[^.]*$||')"
+    
+    # Show recent commits for pattern matching
+    echo "\n📜 Recent commit patterns:"
+    git log --oneline -5 --pretty=format:"   🔸 %s"
+    
+    echo "\n🎯 File summary:"
+    [[ -n "$files_added" ]] && echo "   ✅ Added: $(echo "$files_added" | wc -l | tr -d ' ') files"
+    [[ -n "$files_modified" ]] && echo "   🔄 Modified: $(echo "$files_modified" | wc -l | tr -d ' ') files"  
+    [[ -n "$files_deleted" ]] && echo "   🗑️  Deleted: $(echo "$files_deleted" | wc -l | tr -d ' ') files"
+    
+    echo "\n📝 Choose an option:"
+    echo "1️⃣  Use suggested message #1"
+    echo "2️⃣  Use suggested message #2"
+    echo "3️⃣  📝 Write custom message"
+    echo "4️⃣  🔍 Show detailed diff first"
+    echo "5️⃣  🚫 Cancel"
+    echo -n "🤔 Enter your choice (1/2/3/4/5): "
+    
+    read choice
+    case "$choice" in
+        1)
+            local msg="$base_msg: $description"
+            echo "\n📝 Using: $msg"
+            export GIT_SUBMODULES_GENERATED_MSG="$msg"
+            return 0
+            ;;
+        2)
+            local file_based=$(echo "$files_changed" | head -1 | sed 's|.*/||' | sed 's|\.[^.]*$||')
+            local msg="$base_msg: $file_based"
+            echo "\n📝 Using: $msg"
+            export GIT_SUBMODULES_GENERATED_MSG="$msg"
+            return 0
+            ;;
+        3)
+            echo -n "📝 Enter your commit message: "
+            read custom_msg
+            if [[ -n "$custom_msg" ]]; then
+                echo "\n📝 Using: $custom_msg"
+                export GIT_SUBMODULES_GENERATED_MSG="$custom_msg"
+                return 0
+            else
+                _log_error "Empty message provided"
+                return 1
+            fi
+            ;;
+        4)
+            echo "\n🔍 Showing staged changes:"
+            git diff --cached --stat
+            echo "\n🔄 Run generate_commit_message again to create commit"
+            return 1
+            ;;
+        5)
+            _log_info "Operation cancelled"
+            return 1
+            ;;
+        *)
+            _log_error "Invalid choice"
+            return 1
+            ;;
+    esac
+}
+
+# Smart commit command that integrates with commit_all
+smart_commit_all() {
+    echo "\n🧠 === Smart Commit Workflow === 🧠"
+    
+    # Check if there are any staged changes
+    if ! git diff --cached --quiet; then
+        _log_info "Found staged changes in base repository"
+    else
+        _log_info "No staged changes in base repository"
+    fi
+    
+    # Check submodules for staged changes
+    local submodules_with_changes=()
+    local submodules=($(git submodule status --recursive 2>/dev/null | awk '{print $2}'))
+    
+    for submodule in "${submodules[@]}"; do
+        if [[ -d "$submodule" ]]; then
+            if ! (cd "$submodule" && git diff --cached --quiet); then
+                submodules_with_changes+=("$submodule")
+            fi
+        fi
+    done
+    
+    if [[ ${#submodules_with_changes[@]} -gt 0 ]]; then
+        _log_info "Submodules with staged changes: ${submodules_with_changes[*]}"
+    fi
+    
+    # Generate smart commit message
+    if generate_commit_message; then
+        local commit_msg="$GIT_SUBMODULES_GENERATED_MSG"
+        if [[ -n "$commit_msg" ]]; then
+            echo "\n🚀 Proceeding with commit..."
+            commit_all "$commit_msg"
+        fi
+    fi
+}
+
+#=============================================================================
+# Submodule Conflict Resolution
+#=============================================================================
+
+# Detect and resolve submodule-specific conflicts
+resolve_submodule_conflicts() {
+    echo "\n🔧 === Submodule Conflict Resolution Assistant === 🔧"
+    
+    # Check if we're in the middle of a merge
+    if [[ ! -f ".git/MERGE_HEAD" ]]; then
+        _log_warning "No active merge detected. This tool works during merge conflicts."
+        return 1
+    fi
+    
+    # Find conflicted files, focusing on submodules
+    local conflicted_files=$(git diff --name-only --diff-filter=U)
+    local submodule_conflicts=()
+    local regular_conflicts=()
+    local submodules=($(git submodule status --recursive 2>/dev/null | awk '{print $2}'))
+    
+    for file in $conflicted_files; do
+        local is_submodule=false
+        for submodule in "${submodules[@]}"; do
+            if [[ "$file" == "$submodule" ]]; then
+                submodule_conflicts+=("$file")
+                is_submodule=true
+                break
+            fi
+        done
+        [[ "$is_submodule" == "false" ]] && regular_conflicts+=("$file")
+    done
+    
+    echo "📊 Conflict Analysis:"
+    echo "   🏗️  Submodule conflicts: ${#submodule_conflicts[@]}"
+    echo "   📄 Regular file conflicts: ${#regular_conflicts[@]}"
+    
+    if [[ ${#submodule_conflicts[@]} -eq 0 ]]; then
+        _log_info "No submodule conflicts detected"
+        if [[ ${#regular_conflicts[@]} -gt 0 ]]; then
+            echo "💡 For regular file conflicts, use your preferred merge tool"
+            echo "   Example: git mergetool"
+        fi
+        return 0
+    fi
+    
+    echo "\n🎯 Submodule Conflicts Found:"
+    for i in "${!submodule_conflicts[@]}"; do
+        local submodule="${submodule_conflicts[i]}"
+        echo "   $((i+1))️⃣  📦 $submodule"
+        
+        # Show commit information for the conflict
+        echo "      🔄 Current (HEAD): $(git ls-tree HEAD $submodule | awk '{print substr($3,1,8)}')"
+        echo "      🔄 Incoming: $(git ls-tree MERGE_HEAD $submodule | awk '{print substr($3,1,8)}')"
+    done
+    
+    echo "\n🛠️  Resolution Options:"
+    echo "1️⃣  📋 Show detailed conflict info for each submodule"
+    echo "2️⃣  👈 Keep current version (HEAD) for all submodules"
+    echo "3️⃣  👉 Accept incoming version (MERGE_HEAD) for all submodules"
+    echo "4️⃣  🎯 Resolve each submodule individually"
+    echo "5️⃣  🔍 Update submodules to latest commits"
+    echo "6️⃣  🚫 Abort merge"
+    echo -n "🤔 Enter your choice (1/2/3/4/5/6): "
+    
+    read choice
+    case "$choice" in
+        1)
+            show_submodule_conflict_details "${submodule_conflicts[@]}"
+            ;;
+        2)
+            resolve_all_submodules "current" "${submodule_conflicts[@]}"
+            ;;
+        3)
+            resolve_all_submodules "incoming" "${submodule_conflicts[@]}"
+            ;;
+        4)
+            resolve_submodules_individually "${submodule_conflicts[@]}"
+            ;;
+        5)
+            update_conflicted_submodules "${submodule_conflicts[@]}"
+            ;;
+        6)
+            echo "🚫 Aborting merge..."
+            git merge --abort
+            _log_success "Merge aborted successfully"
+            ;;
+        *)
+            _log_error "Invalid choice"
+            return 1
+            ;;
+    esac
+}
+
+show_submodule_conflict_details() {
+    local submodules=("$@")
+    
+    for submodule in "${submodules[@]}"; do
+        echo "\n📦 === $submodule Conflict Details ==="
+        
+        local current_commit=$(git ls-tree HEAD $submodule | awk '{print $3}')
+        local incoming_commit=$(git ls-tree MERGE_HEAD $submodule | awk '{print $3}')
+        
+        echo "👈 Current (HEAD): $current_commit"
+        if [[ -d "$submodule" ]]; then
+            echo "   $(cd $submodule && git log --oneline -1 $current_commit 2>/dev/null || echo 'Commit not found locally')"
+        fi
+        
+        echo "👉 Incoming (MERGE_HEAD): $incoming_commit"  
+        if [[ -d "$submodule" ]]; then
+            echo "   $(cd $submodule && git log --oneline -1 $incoming_commit 2>/dev/null || echo 'Commit not found locally')"
+        fi
+        
+        # Show if one is ahead of the other
+        if [[ -d "$submodule" ]]; then
+            local ahead_behind=$(cd $submodule && git rev-list --count --left-right $current_commit...$incoming_commit 2>/dev/null)
+            if [[ -n "$ahead_behind" ]]; then
+                echo "📊 Relationship: $ahead_behind (current ahead, incoming ahead)"
+            fi
+        fi
+    done
+    
+    echo "\n🔄 Run resolve_submodule_conflicts again to choose resolution"
+}
+
+resolve_all_submodules() {
+    local choice="$1"
+    shift
+    local submodules=("$@")
+    
+    for submodule in "${submodules[@]}"; do
+        if [[ "$choice" == "current" ]]; then
+            _log_info "👈 Keeping current version of $submodule"
+            git add "$submodule"
+        else
+            _log_info "👉 Accepting incoming version of $submodule"
+            local incoming_commit=$(git ls-tree MERGE_HEAD $submodule | awk '{print $3}')
+            git update-index --add --cacheinfo 160000 $incoming_commit $submodule
+        fi
+    done
+    
+    _log_success "All submodule conflicts resolved"
+    echo "💡 Next steps:"
+    echo "   1️⃣  Review: git status"
+    echo "   2️⃣  Commit: git commit"
+}
+
+resolve_submodules_individually() {
+    local submodules=("$@")
+    
+    for submodule in "${submodules[@]}"; do
+        echo "\n📦 Resolving: $submodule"
+        echo "👈 1️⃣  Keep current version (HEAD)"
+        echo "👉 2️⃣  Accept incoming version (MERGE_HEAD)"
+        echo "🔄 3️⃣  Update to latest origin/main"
+        echo "⏭️  4️⃣  Skip this submodule"
+        echo -n "🤔 Choice for $submodule (1/2/3/4): "
+        
+        read choice
+        case "$choice" in
+            1)
+                _log_info "👈 Keeping current version of $submodule"
+                git add "$submodule"
+                ;;
+            2)
+                _log_info "👉 Accepting incoming version of $submodule"
+                local incoming_commit=$(git ls-tree MERGE_HEAD $submodule | awk '{print $3}')
+                git update-index --add --cacheinfo 160000 $incoming_commit $submodule
+                ;;
+            3)
+                _log_info "🔄 Updating $submodule to latest origin/main"
+                if [[ -d "$submodule" ]]; then
+                    (cd "$submodule" && git fetch origin main && git checkout origin/main)
+                    git add "$submodule"
+                fi
+                ;;
+            4)
+                _log_info "⏭️  Skipping $submodule"
+                continue
+                ;;
+            *)
+                _log_error "Invalid choice, skipping $submodule"
+                continue
+                ;;
+        esac
+    done
+    
+    _log_success "Individual submodule resolution completed"
+}
+
+update_conflicted_submodules() {
+    local submodules=("$@")
+    
+    _log_info "🔄 Updating conflicted submodules to latest commits..."
+    
+    for submodule in "${submodules[@]}"; do
+        if [[ -d "$submodule" ]]; then
+            _log_info "📦 Updating $submodule..."
+            (cd "$submodule" && git fetch origin && git checkout origin/main)
+            git add "$submodule"
+        else
+            _log_warning "Submodule directory $submodule not found, skipping"
+        fi
+    done
+    
+    _log_success "Submodules updated to latest commits"
+}
+
+#=============================================================================
 # Plugin Management
 #=============================================================================
 

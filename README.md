@@ -103,6 +103,14 @@ toggle_verbose
 | `merge_all` | Interactive merge with stash handling | Smart conflict resolution |
 | `create_tag_all <name>` | Create and push tags across repos | Validation and error handling |
 
+### Smart Features
+
+| Command | Description | Purpose |
+|---------|-------------|---------|
+| `generate_commit_message` | AI-like commit message suggestions | Smart conventional commits |
+| `smart_commit_all` | Complete smart commit workflow | Automated commit with analysis |
+| `resolve_submodule_conflicts` | Interactive submodule conflict resolution | Fix merge conflicts easily |
+
 ### Utility Commands
 
 | Command | Description | Purpose |
@@ -193,6 +201,84 @@ start_feature
 # ℹ️  🌍 Creating branch 'user-authentication' in base repository and submodules...
 # ✅ 🎉 Branch 'user-authentication' created successfully!
 ```
+
+### Smart Commit Generation
+
+```bash
+smart_commit_all
+# AI-like commit message generation:
+# 🧠 === Smart Commit Workflow === 🧠
+# ℹ️  Found staged changes in base repository
+# 
+# 🤖 === Smart Commit Message Generator === 🤖
+# 📂 Files changed: 3
+# 
+# 💡 Suggested commit messages:
+# 1️⃣  feat(frontend): add new functionality
+# 2️⃣  feat(frontend): auth-component
+# 
+# 📜 Recent commit patterns:
+#    🔸 fix: resolve login bug
+#    🔸 feat: add user dashboard
+# 
+# 🎯 File summary:
+#    ✅ Added: 1 files
+#    🔄 Modified: 2 files
+# 
+# 📝 Choose an option:
+# 1️⃣  Use suggested message #1
+# 2️⃣  Use suggested message #2  
+# 3️⃣  📝 Write custom message
+# 4️⃣  🔍 Show detailed diff first
+# 5️⃣  🚫 Cancel
+# 🤔 Enter your choice (1/2/3/4/5): 1
+#
+# 📝 Using: feat(frontend): add new functionality
+# 🚀 Proceeding with commit...
+```
+
+**Features:**
+- 🤖 **Automatic Analysis** - Detects file types and suggests appropriate commit types
+- 📋 **Conventional Commits** - Follows standard commit message format
+- 🎯 **Smart Scoping** - Auto-detects scope based on directory structure  
+- 📜 **Pattern Learning** - Shows recent commits to maintain consistency
+- 📊 **File Summary** - Clear overview of added/modified/deleted files
+
+### Submodule Conflict Resolution
+
+```bash
+resolve_submodule_conflicts
+# Specialized submodule conflict assistant:
+# 🔧 === Submodule Conflict Resolution Assistant === 🔧
+# 
+# 📊 Conflict Analysis:
+#    🏗️  Submodule conflicts: 2
+#    📄 Regular file conflicts: 0
+# 
+# 🎯 Submodule Conflicts Found:
+#    1️⃣  📦 frontend/ee
+#       🔄 Current (HEAD): a1b2c3d4
+#       🔄 Incoming: e5f6g7h8
+#    2️⃣  📦 server/ee  
+#       🔄 Current (HEAD): x1y2z3a4
+#       🔄 Incoming: b5c6d7e8
+# 
+# 🛠️  Resolution Options:
+# 1️⃣  📋 Show detailed conflict info for each submodule
+# 2️⃣  👈 Keep current version (HEAD) for all submodules
+# 3️⃣  👉 Accept incoming version (MERGE_HEAD) for all submodules
+# 4️⃣  🎯 Resolve each submodule individually
+# 5️⃣  🔍 Update submodules to latest commits
+# 6️⃣  🚫 Abort merge
+# 🤔 Enter your choice (1/2/3/4/5/6): 4
+```
+
+**Features:**
+- 🎯 **Submodule-Specific** - Focuses specifically on submodule conflicts
+- 📊 **Smart Analysis** - Distinguishes between submodule and file conflicts
+- 🔍 **Detailed Info** - Shows commit hashes and messages for each conflict
+- 🎨 **Multiple Strategies** - Batch resolution or individual handling
+- 🔄 **Latest Updates** - Option to update to newest commits
 
 ## 🛡️ Safety Features
 
