@@ -1,16 +1,15 @@
 # Git Submodules - Oh My Zsh Plugin
 
-A robust and feature-rich Oh My Zsh plugin that provides powerful utilities for managing Git repositories with submodules. This enhanced version includes improved error handling, security features, and better user experience.
+A clean and powerful Oh My Zsh plugin for managing Git repositories with submodules. This plugin provides essential utilities while maintaining simplicity and reliability.
 
 ## ✨ Features
 
-- 🛡️ **Robust Error Handling** - Comprehensive validation and safe operations
-- 🔒 **Security Enhanced** - Input sanitization and secure command execution  
-- 🎯 **Smart Submodule Detection** - Automatically discovers all submodules
-- 🔄 **Dry Run Mode** - Preview operations before execution
-- 📊 **Enhanced Logging** - Clear, emoji-based status messages
-- ⚙️ **Configurable** - Environment variables for customization
-- 🔧 **Interactive Operations** - User-friendly prompts and selections
+- 🎯 **Simple & Reliable** - Focused on core functionality that works
+- 🔄 **Interactive Operations** - User-friendly prompts for complex workflows
+- 📊 **Smart Logging** - Clear, emoji-based status messages with verbose control
+- 🛡️ **Safe Operations** - Input validation and proper error handling
+- 🔧 **Stash Management** - Automatic stash handling for checkout and merge operations
+- ⚙️ **Auto-Update** - Self-updating capability with interactive prompts
 
 ## 📦 Installation
 
@@ -40,7 +39,7 @@ A robust and feature-rich Oh My Zsh plugin that provides powerful utilities for 
 
 2. Source the plugin in your shell configuration:
    ```bash
-   source /path/to/git-submodules/git-submodules-improved.plugin.zsh
+   source /path/to/git-submodules/git-submodules.plugin.zsh
    ```
 
 ## 🚀 Quick Start
@@ -57,8 +56,8 @@ pull_all
 # Create a feature branch interactively
 start_feature
 
-# Enable dry-run mode to preview operations
-toggle_dry_run
+# Control logging verbosity
+toggle_verbose
 ```
 
 ## 📋 Available Commands
@@ -70,7 +69,7 @@ toggle_dry_run
 | `pull_all` | Pull changes for main repo and all submodules | `pull_all` |
 | `push_all` | Push changes across all repositories | `push_all` |
 | `add_all` | Stage changes in main repo and submodules | `add_all` |
-| `commit_all "<message>"` | Commit changes across all repositories | `commit_all "Fix bug in authentication"` |
+| `commit_all "<message>"` | Commit changes across all repositories | `commit_all "Fix authentication bug"` |
 | `status_all` | Show Git status for all repositories | `status_all` |
 
 ### Branch Management
@@ -80,9 +79,10 @@ toggle_dry_run
 | `checkout_all` | Interactive checkout with stash support | `checkout_all` |
 | `create_branch_all <name>` | Create branch in all repositories | `create_branch_all my-feature` |
 | `create_feature_all <name>` | Create `feature/` prefixed branch | `create_feature_all user-auth` |
-| `create_hotfix_all <name>` | Create `hot-fix/` prefixed branch | `create_hotfix_all critical-bug` |
+| `create_hotfix_all <name>` | Create `hotfix/` prefixed branch | `create_hotfix_all critical-fix` |
 | `create_release_all <name>` | Create `release/` prefixed branch | `create_release_all v2.1.0` |
 | `create_sprint_all <name>` | Create `sprint/` prefixed branch | `create_sprint_all sprint-23` |
+| `create_revamp_all <name>` | Create `revamp/` prefixed branch | `create_revamp_all ui-redesign` |
 
 ### Interactive Commands
 
@@ -106,35 +106,22 @@ toggle_dry_run
 | Command | Description | Purpose |
 |---------|-------------|---------|
 | `git_submodules_status` | Show plugin and repository status | Debug and overview |
-| `toggle_dry_run` | Enable/disable dry-run mode | Safe testing |
 | `toggle_verbose` | Control output verbosity | Customize logging |
 | `update_git_submodules_plugin` | Update plugin to latest version | Auto-update |
 
 ## ⚙️ Configuration
 
-The plugin supports several environment variables for customization:
-
-### Environment Variables
+The plugin supports environment variables for customization:
 
 ```bash
-# Enable dry-run mode (preview operations without executing)
-export GIT_SUBMODULES_DRY_RUN=true
-
-# Control output verbosity (true/false)
+# Control output verbosity (default: true)
 export GIT_SUBMODULES_VERBOSE=true
-
-# Set default submodules (space-separated list)
-export GIT_SUBMODULES_DEFAULT_SUBMODULES="frontend/ee server/ee mobile/app"
 ```
 
-Add these to your `~/.zshrc` or shell profile to make them persistent.
-
-### Runtime Configuration
+Add this to your `~/.zshrc` to make it persistent, or use the runtime toggle:
 
 ```bash
-# Toggle modes during usage
-toggle_dry_run      # Enable/disable dry-run mode
-toggle_verbose      # Enable/disable verbose output
+toggle_verbose  # Enable/disable verbose output
 ```
 
 ## 🔧 Detailed Command Usage
@@ -145,14 +132,14 @@ toggle_verbose      # Enable/disable verbose output
 checkout_all
 # Prompts:
 # 1. Enter branch name
-# 2. Choose scope: base, submodules, both, or both with stash
+# 2. Choose scope: base, submodules, both, or both with stash handling
 ```
 
 **Features:**
 - ✅ Automatic stash handling for uncommitted changes
-- ✅ Smart upstream tracking
+- ✅ Smart upstream tracking and pulling
 - ✅ Validation before operations
-- ✅ Rollback on failures
+- ✅ Graceful error handling
 
 ### Smart Merge (`merge_all`) 
 
@@ -161,13 +148,14 @@ merge_all
 # Prompts:
 # 1. Enter base branch to merge from
 # 2. Choose merge scope and stash handling
+# 3. Select specific submodules if needed
 ```
 
-**Enhanced Features:**
-- 🔄 Dynamic submodule detection and selection
-- 💾 Automatic stash management
-- ⚠️ Conflict detection and user guidance
-- 🛡️ Pre-merge validation
+**Features:**
+- 🔄 Flexible submodule selection (frontend/ee, server/ee, or both)
+- 💾 Automatic stash management before/after merge
+- ⚠️ Clear feedback on merge operations
+- 🛡️ Pre-merge validation and fetching
 
 ### Interactive Branch Creation
 
@@ -176,31 +164,23 @@ start_feature
 # Creates feature/branch-name with guided selection:
 # 1. Base repository only
 # 2. Submodules only  
-# 3. Specific folders
+# 3. Specific folders (custom paths)
 # 4. All repositories
 ```
 
 ## 🛡️ Safety Features
 
 ### Input Validation
-- **Branch name validation** - Prevents invalid characters
-- **Directory validation** - Ensures paths exist before operations
-- **Git repository validation** - Confirms valid Git repos
-- **Command sanitization** - Prevents injection attacks
+- **Branch name validation** - Ensures valid Git branch names
+- **Directory validation** - Confirms paths exist before operations
+- **Git repository validation** - Checks for valid Git repositories
+- **Error recovery** - Graceful handling of failures
 
-### Error Handling
-- **Graceful failures** - No shell exits, proper return codes
-- **Detailed error messages** - Clear explanations and suggestions
-- **Operation rollback** - Undo partial operations on failures
-- **Safe directory changes** - Automatic cleanup and restoration
-
-### Dry Run Mode
-```bash
-# Preview operations without executing
-toggle_dry_run
-pull_all  # Shows what would be done
-toggle_dry_run  # Disable to execute normally
-```
+### Smart Stash Management
+- **Automatic detection** - Only stashes when there are changes
+- **Branch-specific stashing** - Uses descriptive stash messages
+- **Intelligent recovery** - Applies correct stash after operations
+- **Clean handling** - No orphaned stashes
 
 ## 📊 Status and Monitoring
 
@@ -208,32 +188,32 @@ toggle_dry_run  # Disable to execute normally
 ```bash
 git_submodules_status
 # Shows:
-# - Plugin configuration
-# - Repository validation
-# - Discovered submodules
-# - Current modes (dry-run, verbose)
+# - Plugin directory and configuration
+# - Repository validation status
+# - Discovered submodules list
+# - Current verbose mode setting
 ```
 
 ### Repository Status  
 ```bash
 status_all
 # Enhanced output with:
-# - Formatted section headers
-# - Branch information
-# - Clean status indicators
+# - Base repository status with branch info
+# - Individual submodule status sections
+# - Clean, formatted display
 ```
 
 ## 🔄 Auto-Update
 
-The plugin can update itself automatically:
+The plugin can update itself:
 
 ```bash
 update_git_submodules_plugin
 # Features:
-# - Checks for new versions
+# - Checks for new versions from main branch
 # - Interactive update confirmation
 # - Automatic Zsh reload option
-# - Rollback on update failures
+# - Error handling with rollback
 ```
 
 ## 🚨 Troubleshooting
@@ -256,25 +236,25 @@ git submodule update --init --recursive
 
 **Branch creation failures:**
 ```bash
-# Enable verbose mode for detailed error information
+# Enable verbose mode for detailed information
 toggle_verbose
-create_branch_all my-branch
+start_feature  # Try creating branch with verbose output
 ```
 
 **Stash conflicts:**
 ```bash
-# Manually resolve stash conflicts
+# Check existing stashes
 git stash list
-git stash pop stash@{0}  # Apply specific stash
+# Apply specific stash manually if needed
+git stash pop stash@{0}
 ```
 
 ### Debug Mode
 
 ```bash
 # Enable comprehensive logging
-export GIT_SUBMODULES_VERBOSE=true
-toggle_dry_run  # Preview operations
-git_submodules_status  # Check configuration
+toggle_verbose
+git_submodules_status  # Check plugin status
 ```
 
 ## 🎯 Best Practices
@@ -287,57 +267,42 @@ git_submodules_status  # Check configuration
    status_all
    ```
 
-2. **Use dry-run for complex operations:**
+2. **Use interactive commands for complex operations:**
    ```bash
-   toggle_dry_run
-   merge_all  # Preview the merge
-   toggle_dry_run  # Execute when ready
+   start_feature     # Interactive branch creation
+   checkout_all      # Interactive checkout with stash handling
+   merge_all         # Interactive merge with stash support
    ```
 
-3. **Interactive commands for flexibility:**
+3. **Regular maintenance:**
    ```bash
-   start_feature  # Interactive branch creation
-   checkout_all   # Interactive checkout with stash
-   ```
-
-4. **Regular updates:**
-   ```bash
-   pull_all  # Stay synchronized
-   update_git_submodules_plugin  # Keep plugin updated
+   pull_all                        # Stay synchronized
+   update_git_submodules_plugin    # Keep plugin updated
    ```
 
 ### Safety Guidelines
 
 - ✅ Always run from the **base repository** (main repo containing submodules)
-- ✅ Use **dry-run mode** for testing complex operations
 - ✅ **Commit or stash** changes before major operations
 - ✅ **Verify submodule status** before bulk operations
+- ✅ Use **interactive commands** for complex workflows
 - ✅ **Keep backups** of important work
 
 ## 🔒 Security Notes
 
 - All user inputs are **validated and sanitized**
-- Commands use **proper quoting** to prevent injection
-- **Directory validation** prevents path traversal
+- Commands use **proper parameter handling** to prevent issues
+- **Directory validation** prevents path problems
 - **Git operations** are executed safely with error handling
 
-## 🆚 Legacy Compatibility  
+## 📄 Plugin Design
 
-The enhanced version maintains **100% backward compatibility** with the original plugin while adding:
-
-- Enhanced error handling and validation
-- Security improvements
-- Better user experience
-- Additional utility functions
-- Configurable behavior
-
-Existing scripts and workflows will continue to work unchanged.
-
-## 📄 Version Information
-
-- **Enhanced Version**: Includes all improvements and new features
-- **Original Version**: Available as `git-submodules.plugin.zsh`
-- **Recommended**: Use enhanced version for new installations
+This plugin focuses on:
+- **Simplicity** - Clean, understandable code
+- **Reliability** - Proven functionality that works
+- **User Experience** - Interactive prompts and clear feedback
+- **Safety** - Input validation and error handling
+- **Maintainability** - Easy to understand and extend
 
 ## 🤝 Contributing
 
@@ -347,38 +312,25 @@ Existing scripts and workflows will continue to work unchanged.
 4. Push to branch: `git push origin feature/amazing-feature`
 5. Open a Pull Request
 
-## 🙏 Acknowledgments
+## 📝 Uninstallation
 
-- Original inspiration from Git submodule workflows
-- Oh My Zsh plugin architecture
-- Community feedback and contributions
-
----
-
-**⚠️ Important Note:** All commands should be executed from the **base repository** (the main Git repository that contains submodules). The plugin automatically detects and works with all submodules in your repository structure.
-
-### Uninstallation
-
-To remove the plugin, follow these steps:
+To remove the plugin:
 
 1. Remove it from your `.zshrc` plugins list:
-
-   ```sh
+   ```bash
    plugins=( ... )  # Remove 'git-submodules' from the list
    ```
 
 2. Delete the plugin directory:
-
-   ```sh
+   ```bash
    rm -rf ~/.oh-my-zsh/custom/plugins/git-submodules
    ```
 
 3. Reload Zsh:
-
-   ```sh
+   ```bash
    source ~/.zshrc
    ```
 
-#### Note:
+---
 
 **⚠️ Important Note:** All commands should be executed from the **base repository** (the main Git repository that contains submodules). The plugin automatically detects and works with all submodules in your repository structure.
