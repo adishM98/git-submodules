@@ -566,6 +566,222 @@ merge_all() {
 # Smart Commit Generation
 #=============================================================================
 
+# Analyze actual diff content to understand changes
+_analyze_diff_content() {
+    local diff_content=$(git diff --cached)
+    local added_lines=$(echo "$diff_content" | grep -c "^+[^+]" || echo "0")
+    local removed_lines=$(echo "$diff_content" | grep -c "^-[^-]" || echo "0")
+    
+    # Analyze what types of changes were made
+    local has_function_additions=false
+    local has_function_modifications=false
+    local has_imports=false
+    local has_exports=false
+    local has_error_handling=false
+    local has_logging=false
+    local has_tests=false
+    local has_comments=false
+    local has_configs=false
+    local has_dependencies=false
+    local has_styling=false
+    local has_database=false
+    local has_api_endpoints=false
+    local has_ui_components=false
+    
+    # Function-related changes
+    if echo "$diff_content" | grep -q "^+.*function\|^+.*def \|^+.*const.*=\|^+.*let.*=\|^+.*var.*=\|^+.*=>\|^+.*func "; then
+        has_function_additions=true
+    fi
+    
+    if echo "$diff_content" | grep -q "^-.*function\|^-.*def \|^+.*function\|^+.*def "; then
+        has_function_modifications=true
+    fi
+    
+    # Import/Export changes
+    if echo "$diff_content" | grep -q "^+.*import\|^+.*require\|^+.*from.*import\|^+.*#include\|^+.*use "; then
+        has_imports=true
+    fi
+    
+    if echo "$diff_content" | grep -q "^+.*export\|^+.*module\.exports\|^+.*__all__"; then
+        has_exports=true
+    fi
+    
+    # Error handling
+    if echo "$diff_content" | grep -q "^+.*try\|^+.*catch\|^+.*except\|^+.*finally\|^+.*throw\|^+.*raise\|^+.*error"; then
+        has_error_handling=true
+    fi
+    
+    # Logging
+    if echo "$diff_content" | grep -q "^+.*log\|^+.*print\|^+.*console\|^+.*debug\|^+.*info\|^+.*warn\|^+.*error"; then
+        has_logging=true
+    fi
+    
+    # Tests
+    if echo "$diff_content" | grep -q "^+.*test\|^+.*spec\|^+.*expect\|^+.*assert\|^+.*should\|^+.*describe\|^+.*it("; then
+        has_tests=true
+    fi
+    
+    # Comments and documentation
+    if echo "$diff_content" | grep -q "^+.*//\|^+.*#\|^+.*/\*\|^+.*\"\"\"\|^+.*'''"; then
+        has_comments=true
+    fi
+    
+    # Configuration changes
+    if echo "$diff_content" | grep -q "^+.*config\|^+.*settings\|^+.*env\|^+.*\.json\|^+.*\.yaml\|^+.*\.toml"; then
+        has_configs=true
+    fi
+    
+    # Dependencies
+    if echo "$diff_content" | grep -q "^+.*package\.json\|^+.*requirements\.txt\|^+.*go\.mod\|^+.*Cargo\.toml\|^+.*pom\.xml"; then
+        has_dependencies=true
+    fi
+    
+    # Styling
+    if echo "$diff_content" | grep -q "^+.*\.css\|^+.*\.scss\|^+.*\.less\|^+.*style\|^+.*className\|^+.*class="; then
+        has_styling=true
+    fi
+    
+    # Database
+    if echo "$diff_content" | grep -q "^+.*SELECT\|^+.*INSERT\|^+.*UPDATE\|^+.*DELETE\|^+.*CREATE TABLE\|^+.*ALTER TABLE\|^+.*database\|^+.*query"; then
+        has_database=true
+    fi
+    
+    # API endpoints
+    if echo "$diff_content" | grep -q "^+.*@app\.route\|^+.*@router\|^+.*app\.get\|^+.*app\.post\|^+.*app\.put\|^+.*app\.delete\|^+.*router\.\|^+.*/api/"; then
+        has_api_endpoints=true
+    fi
+    
+    # UI components
+    if echo "$diff_content" | grep -q "^+.*<\|^+.*React\|^+.*Component\|^+.*render\|^+.*return.*<\|^+.*jsx\|^+.*tsx"; then
+        has_ui_components=true
+    fi
+    
+    # Export results
+    echo "$added_lines:$removed_lines:$has_function_additions:$has_function_modifications:$has_imports:$has_exports:$has_error_handling:$has_logging:$has_tests:$has_comments:$has_configs:$has_dependencies:$has_styling:$has_database:$has_api_endpoints:$has_ui_components"
+}
+
+# Generate meaningful description based on actual changes
+_generate_smart_description() {
+    local files_changed="$1"
+    local files_added="$2" 
+    local files_modified="$3"
+    local files_deleted="$4"
+    local analysis="$5"
+    
+    # Parse analysis results
+    local IFS=':'
+    local analysis_array=($analysis)
+    local added_lines=${analysis_array[0]}
+    local removed_lines=${analysis_array[1]}
+    local has_function_additions=${analysis_array[2]}
+    local has_function_modifications=${analysis_array[3]}
+    local has_imports=${analysis_array[4]}
+    local has_exports=${analysis_array[5]}
+    local has_error_handling=${analysis_array[6]}
+    local has_logging=${analysis_array[7]}
+    local has_tests=${analysis_array[8]}
+    local has_comments=${analysis_array[9]}
+    local has_configs=${analysis_array[10]}
+    local has_dependencies=${analysis_array[11]}
+    local has_styling=${analysis_array[12]}
+    local has_database=${analysis_array[13]}
+    local has_api_endpoints=${analysis_array[14]}
+    local has_ui_components=${analysis_array[15]}
+    
+    local commit_type="feat"
+    local description=""
+    
+    # Determine commit type and description based on actual changes
+    if [[ "$has_tests" == "true" ]]; then
+        commit_type="test"
+        if [[ $(echo "$files_added" | wc -l | tr -d ' ') -gt 0 ]]; then
+            description="add test coverage for $(echo "$files_added" | head -1 | sed 's|.*/||' | sed 's|\.[^.]*$||')"
+        else
+            description="update test cases"
+        fi
+    elif echo "$files_changed" | grep -q -E "README|CHANGELOG|\.md$|docs/"; then
+        commit_type="docs"
+        if [[ "$has_comments" == "true" ]]; then
+            description="improve code documentation and comments"
+        else
+            description="update documentation"
+        fi
+    elif [[ "$has_dependencies" == "true" ]] || echo "$files_changed" | grep -q -E "package\.json|requirements\.txt|go\.mod|Cargo\.toml"; then
+        commit_type="build"
+        if [[ "$added_lines" -gt "$removed_lines" ]]; then
+            description="add new dependencies"
+        else
+            description="update dependencies"
+        fi
+    elif [[ "$has_configs" == "true" ]] || echo "$files_changed" | grep -q -E "\.config|\.env|settings"; then
+        commit_type="config"
+        description="update configuration settings"
+    elif [[ "$has_styling" == "true" ]]; then
+        commit_type="style"
+        if [[ $(echo "$files_added" | wc -l | tr -d ' ') -gt 0 ]]; then
+            description="add styling for $(echo "$files_changed" | grep -v '\.css$\|\.scss$' | head -1 | sed 's|.*/||' | sed 's|\.[^.]*$||')"
+        else
+            description="update component styles"
+        fi
+    elif [[ "$has_api_endpoints" == "true" ]]; then
+        commit_type="feat"
+        if [[ $(echo "$files_added" | wc -l | tr -d ' ') -gt 0 ]]; then
+            description="add API endpoint for $(echo "$files_changed" | head -1 | sed 's|.*/||' | sed 's|\.[^.]*$||')"
+        else
+            description="update API endpoints"
+        fi
+    elif [[ "$has_ui_components" == "true" ]]; then
+        commit_type="feat" 
+        if [[ $(echo "$files_added" | wc -l | tr -d ' ') -gt 0 ]]; then
+            local component_name=$(echo "$files_added" | head -1 | sed 's|.*/||' | sed 's|\.[^.]*$||')
+            description="add $component_name component"
+        else
+            description="update UI components"
+        fi
+    elif [[ "$has_database" == "true" ]]; then
+        commit_type="feat"
+        description="update database operations"
+    elif [[ "$has_error_handling" == "true" ]]; then
+        commit_type="fix"
+        description="improve error handling"
+    elif [[ "$has_function_additions" == "true" ]]; then
+        commit_type="feat"
+        local main_file=$(echo "$files_changed" | head -1 | sed 's|.*/||' | sed 's|\.[^.]*$||')
+        description="add functionality to $main_file"
+    elif [[ "$has_function_modifications" == "true" ]]; then
+        if echo "$files_changed" | grep -q -E "fix|bug|error" || [[ "$has_error_handling" == "true" ]]; then
+            commit_type="fix"
+            description="resolve issues in $(echo "$files_changed" | head -1 | sed 's|.*/||' | sed 's|\.[^.]*$||')"
+        else
+            commit_type="feat" 
+            description="enhance $(echo "$files_changed" | head -1 | sed 's|.*/||' | sed 's|\.[^.]*$||') functionality"
+        fi
+    elif [[ $(echo "$files_deleted" | wc -l | tr -d ' ') -gt 0 ]]; then
+        commit_type="refactor"
+        description="remove unused $(echo "$files_deleted" | head -1 | sed 's|.*/||')"
+    elif [[ "$has_imports" == "true" ]] && [[ "$added_lines" -gt 5 ]]; then
+        commit_type="feat"
+        description="integrate new functionality"
+    else
+        # Default based on file changes
+        if [[ $(echo "$files_added" | wc -l | tr -d ' ') -gt 0 ]]; then
+            commit_type="feat"
+            local added_file=$(echo "$files_added" | head -1 | sed 's|.*/||' | sed 's|\.[^.]*$||')
+            description="add $added_file"
+        elif [[ $(echo "$files_modified" | wc -l | tr -d ' ') -gt 0 ]]; then
+            if [[ "$removed_lines" -gt "$added_lines" ]]; then
+                commit_type="refactor"
+                description="simplify $(echo "$files_modified" | head -1 | sed 's|.*/||' | sed 's|\.[^.]*$||')"
+            else
+                commit_type="feat"
+                description="enhance $(echo "$files_modified" | head -1 | sed 's|.*/||' | sed 's|\.[^.]*$||')"
+            fi
+        fi
+    fi
+    
+    echo "$commit_type:$description"
+}
+
 # Analyze staged changes and suggest conventional commit messages
 generate_commit_message() {
     local files_changed=$(git diff --cached --name-only)
@@ -581,38 +797,19 @@ generate_commit_message() {
     echo "\n🤖 === Smart Commit Message Generator === 🤖"
     echo "📂 Files changed: $(echo "$files_changed" | wc -l | tr -d ' ')"
     
-    # Analyze file patterns and suggest commit type
-    local commit_type="feat"
-    local scope=""
-    local description=""
+    # Analyze actual diff content
+    _log_info "🔍 Analyzing code changes..."
+    local content_analysis=$(_analyze_diff_content)
+    local smart_result=$(_generate_smart_description "$files_changed" "$files_added" "$files_modified" "$files_deleted" "$content_analysis")
     
-    # Determine commit type based on files
-    if echo "$files_changed" | grep -q -E "\.(test|spec)\.(js|ts|py|go)$"; then
-        commit_type="test"
-        description="add/update tests"
-    elif echo "$files_changed" | grep -q -E "README|CHANGELOG|\.md$"; then
-        commit_type="docs"
-        description="update documentation"
-    elif echo "$files_changed" | grep -q -E "package\.json|requirements\.txt|go\.mod|Cargo\.toml"; then
-        commit_type="build"
-        description="update dependencies"
-    elif echo "$files_changed" | grep -q -E "\.config|\.env|settings"; then
-        commit_type="config"
-        description="update configuration"
-    elif [[ $(echo "$files_added" | wc -l | tr -d ' ') -gt 0 ]]; then
-        commit_type="feat"
-        description="add new functionality"
-    elif [[ $(echo "$files_modified" | wc -l | tr -d ' ') -gt 0 ]]; then
-        if echo "$files_changed" | grep -q -E "fix|bug|error"; then
-            commit_type="fix"
-            description="resolve issues"
-        else
-            commit_type="feat"
-            description="enhance functionality"
-        fi
-    fi
+    # Parse smart analysis results
+    local IFS=':'
+    local smart_array=($smart_result)
+    local commit_type=${smart_array[0]}
+    local description=${smart_array[1]}
     
     # Determine scope from directory structure
+    local scope=""
     local main_dir=$(echo "$files_changed" | head -1 | cut -d'/' -f1)
     case "$main_dir" in
         "frontend"|"client"|"ui"|"web") scope="frontend" ;;
@@ -623,17 +820,54 @@ generate_commit_message() {
         *) scope="" ;;
     esac
     
+    # Parse content analysis for display
+    local IFS=':'
+    local analysis_array=($content_analysis)
+    local added_lines=${analysis_array[0]}
+    local removed_lines=${analysis_array[1]}
+    
+    # Generate alternative descriptions
+    local alt_description="update $(echo "$files_changed" | head -1 | sed 's|.*/||' | sed 's|\.[^.]*$||')"
+    if [[ $(echo "$files_added" | wc -l | tr -d ' ') -gt 0 ]]; then
+        alt_description="implement $(echo "$files_added" | head -1 | sed 's|.*/||' | sed 's|\.[^.]*$||')"
+    fi
+    
     # Generate suggestions
-    echo "\n💡 Suggested commit messages:"
+    echo "\n💡 Smart commit suggestions (based on code analysis):"
     local base_msg="$commit_type"
     [[ -n "$scope" ]] && base_msg="$commit_type($scope)"
     
     echo "1️⃣  $base_msg: $description"
-    echo "2️⃣  $base_msg: $(echo "$files_changed" | head -1 | sed 's|.*/||' | sed 's|\.[^.]*$||')"
+    echo "2️⃣  $base_msg: $alt_description"
+    
+    # Show what was actually changed
+    echo "\n🔍 Code Analysis:"  
+    if [[ "$added_lines" =~ ^[0-9]+$ ]] && [[ "$removed_lines" =~ ^[0-9]+$ ]]; then
+        echo "   📊 +$added_lines/-$removed_lines lines"
+    else
+        echo "   📊 Significant changes detected"
+    fi
+    
+    # Show detected change types
+    local change_types=()
+    [[ "${analysis_array[2]}" == "true" ]] && change_types+=("new functions")
+    [[ "${analysis_array[3]}" == "true" ]] && change_types+=("modified functions")  
+    [[ "${analysis_array[4]}" == "true" ]] && change_types+=("imports")
+    [[ "${analysis_array[6]}" == "true" ]] && change_types+=("error handling")
+    [[ "${analysis_array[7]}" == "true" ]] && change_types+=("logging")
+    [[ "${analysis_array[8]}" == "true" ]] && change_types+=("tests")
+    [[ "${analysis_array[12]}" == "true" ]] && change_types+=("styling")
+    [[ "${analysis_array[13]}" == "true" ]] && change_types+=("database")
+    [[ "${analysis_array[14]}" == "true" ]] && change_types+=("API endpoints")
+    [[ "${analysis_array[15]}" == "true" ]] && change_types+=("UI components")
+    
+    if [[ ${#change_types[@]} -gt 0 ]]; then
+        echo "   🎯 Detected: ${change_types[*]}"
+    fi
     
     # Show recent commits for pattern matching
     echo "\n📜 Recent commit patterns:"
-    git log --oneline -5 --pretty=format:"   🔸 %s"
+    git log --oneline -3 --pretty=format:"   🔸 %s"
     
     echo "\n🎯 File summary:"
     [[ -n "$files_added" ]] && echo "   ✅ Added: $(echo "$files_added" | wc -l | tr -d ' ') files"
