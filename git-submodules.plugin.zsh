@@ -76,6 +76,10 @@ _safe_git() {
     fi
     
     _log_info "Executing: git $*"
+    _log_info "DEBUG: Number of arguments: $#"
+    for i in {1..$#}; do
+        _log_info "DEBUG: Arg $i: '${(P)i}'"
+    done
     if ! git "$@"; then
         _log_error "Git command failed: git $*"
         return 1
@@ -877,65 +881,75 @@ merge_all() {
 #=============================================================================
 
 update_git_submodules_plugin() {
-    local original_dir="$(pwd)"
-    local plugin_dir="$GIT_SUBMODULES_PLUGIN_DIR"
+    # Store the current directory
+    local ORIGINAL_DIR="$(pwd)"
+
+    echo "Checking for updates for git-submodules plugin..."
     
-    _log_info "Checking for updates for git-submodules plugin..."
-    
-    if ! _validate_directory "$plugin_dir"; then
-        _log_error "Plugin directory not found: $plugin_dir"
+    # Validate plugin directory exists
+    if [[ ! -d "$GIT_SUBMODULES_PLUGIN_DIR" ]]; then
+        echo "❌ Plugin directory not found: $GIT_SUBMODULES_PLUGIN_DIR"
         return 1
     fi
     
-    _safe_cd "$plugin_dir" || return 1
-    
-    if ! _validate_git_repo; then
-        _log_error "Plugin directory is not a git repository"
-        cd "$original_dir"
+    # Change to plugin directory
+    if ! cd "$GIT_SUBMODULES_PLUGIN_DIR"; then
+        echo "❌ Failed to change to plugin directory"
         return 1
     fi
     
-    _safe_git fetch origin main --quiet || {
-        _log_error "Failed to fetch updates"
-        cd "$original_dir"
+    # Verify it's a git repository
+    if ! git rev-parse --git-dir >/dev/null 2>&1; then
+        echo "❌ Plugin directory is not a git repository"
+        cd "$ORIGINAL_DIR"
         return 1
-    }
-    
+    fi
+
+    # Fetch latest changes from the main branch quietly
+    if ! git fetch origin main --quiet; then
+        echo "❌ Failed to fetch updates"
+        cd "$ORIGINAL_DIR"
+        return 1
+    fi
+
+    # Check if there are new updates
     if ! git diff --quiet HEAD origin/main; then
-        _log_info "A new update is available for git-submodules plugin."
-        
-        echo -n "Do you want to update? (y/N): "
-        read RESPONSE
-        
+        echo "A new update is available for git-submodules plugin."
+
+        # Ask user if they want to update
+        read "RESPONSE?Do you want to update? (y/N): "
+
         if [[ "$RESPONSE" =~ ^[Yy]$ ]]; then
-            _log_info "Updating git-submodules plugin..."
-            _safe_git reset --hard origin/main --quiet &&
-            _safe_git pull origin main --quiet || {
-                _log_error "Update failed"
-                cd "$original_dir"
-                return 1
-            }
-            
-            _log_success "Update complete!"
-            
-            echo -n "Would you like to reload Zsh now? (y/N): "
-            read RELOAD
-            
-            if [[ "$RELOAD" =~ ^[Yy]$ ]]; then
-                _log_info "Reloading Zsh..."
-                export PREV_DIR="$original_dir"
-                exec zsh -c 'cd "$PREV_DIR"; exec zsh'
+            echo "Updating git-submodules plugin..."
+            if git reset --hard origin/main --quiet && git pull origin main --quiet; then
+                echo "✅ Update complete!"
+
+                # Ask if they want to reload Zsh
+                read "RELOAD?Would you like to reload Zsh now? (y/N): "
+
+                if [[ "$RELOAD" =~ ^[Yy]$ ]]; then
+                    echo "Reloading Zsh..."
+                    # Store the current directory in an environment variable
+                    export PREV_DIR="$ORIGINAL_DIR"
+                    # Reload Zsh and restore the working directory
+                    exec zsh -c 'cd "$PREV_DIR"; exec zsh'
+                else
+                    echo "You can reload manually by running: source ~/.zshrc"
+                fi
             else
-                _log_info "You can reload manually by running: source ~/.zshrc"
+                echo "❌ Update failed"
+                cd "$ORIGINAL_DIR"
+                return 1
             fi
         else
-            _log_info "Skipping update."
+            echo "Skipping update."
         fi
     else
-        _log_success "You're already using the latest version of git-submodules plugin."
+        echo "✅ You're already using the latest version of git-submodules plugin."
     fi
     
-    cd "$original_dir"
+    # Return to original directory
+    cd "$ORIGINAL_DIR"
 }
 
 #=============================================================================
