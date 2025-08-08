@@ -34,30 +34,31 @@ _log_error() {
 toggle_verbose() {
     if [[ "$GIT_SUBMODULES_VERBOSE" == "true" ]]; then
         export GIT_SUBMODULES_VERBOSE=false
-        echo "Verbose mode disabled"
+        echo "🔇 Verbose mode disabled"
     else
         export GIT_SUBMODULES_VERBOSE=true
-        _log_success "Verbose mode enabled"
+        _log_success "🔊 Verbose mode enabled"
     fi
 }
 
 # Show plugin status
 git_submodules_status() {
-    echo "=== Git Submodules Plugin Status ==="
-    echo "Plugin Directory: $GIT_SUBMODULES_PLUGIN_DIR"
-    echo "Verbose Mode: $GIT_SUBMODULES_VERBOSE"
+    echo "\n🔧 === Git Submodules Plugin Status === 🔧"
+    echo "📂 Plugin Directory: $GIT_SUBMODULES_PLUGIN_DIR"
+    echo "🔊 Verbose Mode: $GIT_SUBMODULES_VERBOSE"
     
     if git rev-parse --git-dir >/dev/null 2>&1; then
-        echo "Current Repository: ✅ Valid Git Repository"
+        echo "🏠 Current Repository: ✅ Valid Git Repository"
         local submodules
         submodules=($(git submodule status --recursive 2>/dev/null | awk '{print $2}'))
-        echo "Submodules Found: ${#submodules[@]}"
+        echo "📦 Submodules Found: ${#submodules[@]}"
         for submodule in "${submodules[@]}"; do
-            echo "  - $submodule"
+            echo "  🔸 $submodule"
         done
     else
-        echo "Current Repository: ❌ Not a Git Repository"
+        echo "🏠 Current Repository: ❌ Not a Git Repository"
     fi
+    echo
 }
 
 #=============================================================================
@@ -69,7 +70,7 @@ checkout_interactive() {
     local branch_name scope
 
     # Prompt for branch name
-    echo -n "Enter the branch name to checkout: "
+    echo -n "🌿 Enter the branch name to checkout: "
     read branch_name
 
     if [ -z "$branch_name" ]; then
@@ -82,21 +83,21 @@ checkout_interactive() {
     current_branch=$(git rev-parse --abbrev-ref HEAD)
 
     # Prompt for checkout type
-    echo "Where do you want to checkout the '$branch_name' branch?"
-    echo "1) Base repository"
-    echo "2) Submodule repositories"
-    echo "3) Both (Base + Submodules)"
-    echo "4) Both (Base + Submodules) with Stash Handling"
-    echo -n "Enter your choice (1/2/3/4): "
+    echo "\n🎯 Where do you want to checkout the '$branch_name' branch?"
+    echo "1️⃣  🏠 Base repository"
+    echo "2️⃣  📦 Submodule repositories"
+    echo "3️⃣  🌍 Both (Base + Submodules)"
+    echo "4️⃣  🌍💾 Both (Base + Submodules) with Stash Handling"
+    echo -n "🤔 Enter your choice (1/2/3/4): "
     read scope
 
     stash_base_repo() {
         local branch_name="$1"
         if [ -n "$(git status --porcelain)" ]; then
-            _log_info "Stashing changes in base repository for branch $branch_name"
+            _log_info "💾 Stashing changes in base repository for branch $branch_name"
             git stash push -m "stash-for-$branch_name"
         else
-            _log_info "No changes to stash in base repository"
+            _log_info "👤 No changes to stash in base repository"
         fi
     }
 
@@ -105,10 +106,10 @@ checkout_interactive() {
         local stash_entry
         stash_entry=$(git stash list | grep "stash-for-$branch_name" | head -1 | cut -d: -f1)
         if [ -n "$stash_entry" ]; then
-            _log_info "Popping stash $stash_entry in base repository for branch $branch_name"
+            _log_info "🎯 Popping stash $stash_entry in base repository for branch $branch_name"
             git stash pop "$stash_entry"
         else
-            _log_info "No stash found for branch $branch_name in base repository"
+            _log_info "👤 No stash found for branch $branch_name in base repository"
         fi
     }
 
@@ -117,10 +118,10 @@ checkout_interactive() {
         local branch_name="$2"
         cd "$submodule_path" || exit
         if [ -n "$(git status --porcelain)" ]; then
-            _log_info "Stashing changes in $submodule_path for branch $branch_name"
+            _log_info "💾 Stashing changes in $submodule_path for branch $branch_name"
             git stash push -m "stash-for-$branch_name"
         else
-            _log_info "No changes to stash in $submodule_path"
+            _log_info "👤 No changes to stash in $submodule_path"
         fi
         cd - > /dev/null || exit
     }
@@ -132,38 +133,38 @@ checkout_interactive() {
         local stash_entry
         stash_entry=$(git stash list | grep "stash-for-$branch_name" | head -1 | cut -d: -f1)
         if [ -n "$stash_entry" ]; then
-            _log_info "Popping stash $stash_entry in $submodule_path for branch $branch_name"
+            _log_info "🎯 Popping stash $stash_entry in $submodule_path for branch $branch_name"
             git stash pop "$stash_entry"
         else
-            _log_info "No stash found for branch $branch_name in $submodule_path"
+            _log_info "👤 No stash found for branch $branch_name in $submodule_path"
         fi
         cd - > /dev/null || exit
     }
 
     case "$scope" in
         1)
-            _log_info "Checking out branch '$branch_name' in base repository..."
+            _log_info "🏠 Checking out branch '$branch_name' in base repository..."
             git checkout "$branch_name" && git pull
             ;;
         2)
-            _log_info "Checking out branch '$branch_name' in submodules..."
+            _log_info "📦 Checking out branch '$branch_name' in submodules..."
             git submodule foreach --quiet --recursive "git checkout $branch_name && git pull"
             ;;
         3)
-            _log_info "Checking out branch '$branch_name' in base repository and submodules..."
+            _log_info "🌍 Checking out branch '$branch_name' in base repository and submodules..."
             git checkout "$branch_name" && git pull
             git submodule foreach --quiet --recursive "git checkout $branch_name && git pull"
             ;;
         4)
-            _log_info "Handling stashing before switching..."
+            _log_info "💾 Handling stashing before switching..."
             stash_base_repo "$current_branch"
             stash_submodule "frontend/ee" "$current_branch"
             stash_submodule "server/ee" "$current_branch"
 
-            _log_info "Checking out branch '$branch_name' in base repository and submodules..."
+            _log_info "🔄 Checking out branch '$branch_name' in base repository and submodules..."
             git checkout --recurse-submodules "$branch_name"
 
-            _log_info "Applying stash for base repository and submodules..."
+            _log_info "🎯 Applying stash for base repository and submodules..."
             apply_stash_base_repo "$branch_name"
             apply_stash "frontend/ee" "$branch_name"
             apply_stash "server/ee" "$branch_name"
@@ -174,7 +175,7 @@ checkout_interactive() {
             ;;
     esac
 
-    _log_success "Checkout of '$branch_name' completed!"
+    _log_success "🎉 Checkout of '$branch_name' completed!"
 }
 
 # Wrapper function
@@ -182,7 +183,7 @@ checkout_all() { checkout_interactive; }
 
 # Pull changes for all repositories (base + submodules)
 pull_all() {
-    _log_info "Fetching and pulling base repository..."
+    _log_info "📥 Fetching and pulling base repository..."
     git fetch --all
 
     # Attempt to get the current branch and remote tracking info
@@ -190,14 +191,14 @@ pull_all() {
     upstream_branch=$(git rev-parse --abbrev-ref --symbolic-full-name "@{u}" 2>/dev/null)
 
     if [ -z "$upstream_branch" ]; then
-        _log_warning "No upstream tracking branch set for '$current_branch'."
-        echo "To fix: git branch --set-upstream-to=origin/<branch> $current_branch"
+        _log_warning "🔗 No upstream tracking branch set for '$current_branch'."
+        echo "💡 To fix: git branch --set-upstream-to=origin/<branch> $current_branch"
     else
-        _log_info "Pulling latest changes from $upstream_branch..."
+        _log_info "⬇️  Pulling latest changes from $upstream_branch..."
         git pull
     fi
 
-    _log_info "Pulling changes in submodules..."
+    _log_info "📦 Pulling changes in submodules..."
     git submodule foreach --quiet --recursive '
         branch=$(git symbolic-ref --short HEAD 2>/dev/null)
         if [ -z "$branch" ]; then
@@ -213,16 +214,16 @@ pull_all() {
         fi
     '
     
-    _log_success "Pull completed for all repositories"
+    _log_success "🎉 Pull completed for all repositories"
 }
 
 # Stage all changes
 add_all() {
-    _log_info "Staging changes in base repository..."
+    _log_info "🏠 Staging changes in base repository..."
     git add -A
-    _log_info "Staging changes in submodules..."
+    _log_info "📦 Staging changes in submodules..."
     git submodule foreach 'git add -A'
-    _log_success "All changes staged"
+    _log_success "🎉 All changes staged"
 }
 
 # Create a new branch across repositories
@@ -233,13 +234,13 @@ create_branch_all() {
         return 1
     fi
     
-    _log_info "Creating branch '$branch_name' in base repository..."
+    _log_info "🏠 Creating branch '$branch_name' in base repository..."
     git checkout -b "$branch_name" || return 1
     
-    _log_info "Creating branch '$branch_name' in submodules..."
+    _log_info "📦 Creating branch '$branch_name' in submodules..."
     git submodule foreach --quiet --recursive "git checkout -b $branch_name"
     
-    _log_success "Branch '$branch_name' created in all repositories"
+    _log_success "🌿 Branch '$branch_name' created in all repositories"
 }
 
 # Helper function to create prefixed branches
@@ -268,13 +269,13 @@ create_tag_all() {
         return 1
     fi
     
-    _log_info "Creating and pushing tag '$tag_name' in base repository..."
+    _log_info "🏷️  Creating and pushing tag '$tag_name' in base repository..."
     git tag "$tag_name" && git push origin "$tag_name" || return 1
     
-    _log_info "Creating and pushing tag '$tag_name' in submodules..."
+    _log_info "📦 Creating and pushing tag '$tag_name' in submodules..."
     git submodule foreach --quiet --recursive "git tag $tag_name && git push origin $tag_name"
     
-    _log_success "Tag '$tag_name' created and pushed in all repositories"
+    _log_success "🎉 Tag '$tag_name' created and pushed in all repositories"
 }
 
 # Commit all changes with a message
@@ -285,29 +286,29 @@ commit_all() {
         return 1
     fi
     
-    _log_info "Committing changes in base repository..."
+    _log_info "💾 Committing changes in base repository..."
     git commit -m "$message" || return 1
     
-    _log_info "Committing changes in submodules..."
+    _log_info "📦 Committing changes in submodules..."
     git submodule foreach --quiet --recursive "git commit -m '$message'"
     
-    _log_success "Changes committed in all repositories"
+    _log_success "🎉 Changes committed in all repositories"
 }
 
 # Push all changes (base + submodules), setting upstream if needed
 push_all() {
-    _log_info "Pushing base repository..."
+    _log_info "⬆️  Pushing base repository..."
     current_branch=$(git symbolic-ref --short HEAD 2>/dev/null)
     upstream_branch=$(git rev-parse --abbrev-ref --symbolic-full-name "@{u}" 2>/dev/null)
 
     if [ -z "$upstream_branch" ]; then
-        _log_warning "No upstream set for '$current_branch'. Setting upstream to origin/$current_branch..."
+        _log_warning "🔗 No upstream set for '$current_branch'. Setting upstream to origin/$current_branch..."
         git push --set-upstream origin "$current_branch" || return 1
     else
         git push || return 1
     fi
 
-    _log_info "Pushing submodules..."
+    _log_info "📦 Pushing submodules..."
     git submodule foreach --quiet --recursive '
         branch=$(git symbolic-ref --short HEAD 2>/dev/null)
         if [ -z "$branch" ]; then
@@ -324,16 +325,17 @@ push_all() {
         fi
     '
     
-    _log_success "All repositories pushed successfully"
+    _log_success "🚀 All repositories pushed successfully"
 }
 
 # Show status of all repositories
 status_all() {
-    echo "=== Base Repository Status ==="
+    echo "\n🏠 === Base Repository Status ==="
     git status --short --branch
     
-    echo "\n=== Submodule Status ==="
-    git submodule foreach --quiet --recursive 'echo "=== $(basename $PWD) ==="; git status --short --branch'
+    echo "\n📦 === Submodule Status ==="
+    git submodule foreach --quiet --recursive 'echo "\n🔸 === $(basename $PWD) ==="; git status --short --branch'
+    echo
 }
 
 #=============================================================================
@@ -347,9 +349,9 @@ create_branch_interactive() {
 
     # If branch_type is empty (when called from start_branch), skip the type prompt
     if [ -z "$branch_type" ]; then
-        echo -n "Enter branch name: "
+        echo -n "🌱 Enter branch name: "
     else
-        echo -n "Enter $branch_type branch name: "
+        echo -n "🌿 Enter $branch_type branch name: "
     fi
     read branch_name
 
@@ -359,25 +361,25 @@ create_branch_interactive() {
     fi
 
     # Prompt for scope
-    echo "Where do you want to create the '$branch_name' branch?"
-    echo "1) Base repository"
-    echo "2) Submodule repositories"
-    echo "3) Specific folders"
-    echo "4) All (Base + Submodules)"
-    echo -n "Enter your choice (1/2/3/4): "
+    echo "\n🎯 Where do you want to create the '$branch_name' branch?"
+    echo "1️⃣  🏠 Base repository"
+    echo "2️⃣  📦 Submodule repositories"
+    echo "3️⃣  📁 Specific folders"
+    echo "4️⃣  🌍 All (Base + Submodules)"
+    echo -n "🤔 Enter your choice (1/2/3/4): "
     read scope
 
     case "$scope" in
         1)
-            _log_info "Creating branch '$branch_name' in base repository..."
+            _log_info "🏠 Creating branch '$branch_name' in base repository..."
             git checkout -b "$branch_name" && git push -u origin "$branch_name"
             ;;
         2)
-            _log_info "Creating branch '$branch_name' in submodules..."
+            _log_info "📦 Creating branch '$branch_name' in submodules..."
             git submodule foreach --quiet --recursive "git checkout -b $branch_name && git push -u origin $branch_name"
             ;;
         3)
-            echo -n "Enter folder paths (separated by spaces): "
+            echo -n "📁 Enter folder paths (separated by spaces): "
             read -r folder_input
             folder_paths=(${=folder_input})
 
@@ -386,10 +388,10 @@ create_branch_interactive() {
                 return 1
             fi
 
-            _log_info "Processing the following folders: ${folder_paths[@]}"
+            _log_info "📋 Processing the following folders: ${folder_paths[@]}"
             for folder in "${folder_paths[@]}"; do
                 if [ -d "$folder" ]; then
-                    _log_info "Creating branch '$branch_name' in $folder..."
+                    _log_info "🔸 Creating branch '$branch_name' in $folder..."
                     (cd "$folder" && git checkout -b "$branch_name")
                 else
                     _log_error "Folder '$folder' does not exist. Skipping..."
@@ -397,7 +399,7 @@ create_branch_interactive() {
             done
             ;;
         4)
-            _log_info "Creating branch '$branch_name' in base repository and submodules..."
+            _log_info "🌍 Creating branch '$branch_name' in base repository and submodules..."
             git checkout -b "$branch_name" && git push -u origin "$branch_name" || return 1
             git submodule foreach --quiet --recursive "git checkout -b $branch_name"
             ;;
@@ -407,7 +409,7 @@ create_branch_interactive() {
             ;;
     esac
 
-    _log_success "Branch '$branch_name' created successfully!"
+    _log_success "🎉 Branch '$branch_name' created successfully!"
 }
 
 # Interactive wrapper functions
@@ -424,7 +426,7 @@ start_branch() { create_branch_interactive ""; }
 merge_all() {
     local base_branch current_branch scope
 
-    echo -n "Enter the base branch to merge from: "
+    echo -n "🌳 Enter the base branch to merge from: "
     read base_branch
 
     if [ -z "$base_branch" ]; then
@@ -434,12 +436,12 @@ merge_all() {
 
     current_branch=$(git rev-parse --abbrev-ref HEAD)
 
-    echo "Where do you want to merge '$base_branch' into '$current_branch'?"
-    echo "1) Base repository"
-    echo "2) Submodule repositories"
-    echo "3) Both (Base + Submodules)"
-    echo "4) Both (Base + Submodules) with Stash Handling"
-    echo -n "Enter your choice (1/2/3/4): "
+    echo "\n🎯 Where do you want to merge '$base_branch' into '$current_branch'?"
+    echo "1️⃣  🏠 Base repository"
+    echo "2️⃣  📦 Submodule repositories"
+    echo "3️⃣  🌍 Both (Base + Submodules)"
+    echo "4️⃣  🌍💾 Both (Base + Submodules) with Stash Handling"
+    echo -n "🤔 Enter your choice (1/2/3/4): "
     read scope
 
     stash_submodule() {
@@ -491,30 +493,30 @@ merge_all() {
     git fetch origin "$base_branch"
     case "$scope" in
         1)
-            _log_info "Merging base repository..."
+            _log_info "🏠 Merging base repository..."
             git merge origin/"$base_branch"
             ;;
         2)
-            echo "Which submodule(s) do you want to merge into?"
-            echo "1) frontend/ee"
-            echo "2) server/ee"
-            echo "3) Both"
-            echo -n "Enter your choice (1/2/3): "
+            echo "\n📦 Which submodule(s) do you want to merge into?"
+            echo "1️⃣  🔹 frontend/ee"
+            echo "2️⃣  🔹 server/ee"
+            echo "3️⃣  🌍 Both"
+            echo -n "🤔 Enter your choice (1/2/3): "
             read submodule_choice
 
             case "$submodule_choice" in
                 1)
-                    _log_info "Merging into frontend/ee..."
+                    _log_info "🔹 Merging into frontend/ee..."
                     (cd frontend/ee && git fetch origin "$base_branch" && git merge origin/"$base_branch")
                     ;;
                 2)
-                    _log_info "Merging into server/ee..."
+                    _log_info "🔹 Merging into server/ee..."
                     (cd server/ee && git fetch origin "$base_branch" && git merge origin/"$base_branch")
                     ;;
                 3)
-                    _log_info "Merging into frontend/ee..."
+                    _log_info "🔹 Merging into frontend/ee..."
                     (cd frontend/ee && git fetch origin "$base_branch" && git merge origin/"$base_branch")
-                    _log_info "Merging into server/ee..."
+                    _log_info "🔹 Merging into server/ee..."
                     (cd server/ee && git fetch origin "$base_branch" && git merge origin/"$base_branch")
                     ;;
                 *)
@@ -524,29 +526,29 @@ merge_all() {
             esac
             ;;
         3)
-            _log_info "Merging base repository..."
+            _log_info "🏠 Merging base repository..."
             git merge origin/"$base_branch"
-            _log_info "Merging into frontend/ee..."
+            _log_info "🔹 Merging into frontend/ee..."
             (cd frontend/ee && git fetch origin "$base_branch" && git merge origin/"$base_branch")
-            _log_info "Merging into server/ee..."
+            _log_info "🔹 Merging into server/ee..."
             (cd server/ee && git fetch origin "$base_branch" && git merge origin/"$base_branch")
             ;;
         4)
-            _log_info "Stashing changes before merge..."
+            _log_info "💾 Stashing changes before merge..."
             stash_base_repo
             stash_submodule "frontend/ee"
             stash_submodule "server/ee"
 
-            _log_info "Merging base repository..."
+            _log_info "🏠 Merging base repository..."
             git merge origin/"$base_branch"
 
-            _log_info "Merging into frontend/ee..."
+            _log_info "🔹 Merging into frontend/ee..."
             (cd frontend/ee && git fetch origin "$base_branch" && git merge origin/"$base_branch")
 
-            _log_info "Merging into server/ee..."
+            _log_info "🔹 Merging into server/ee..."
             (cd server/ee && git fetch origin "$base_branch" && git merge origin/"$base_branch")
 
-            _log_info "Applying stashes after merge..."
+            _log_info "🎯 Applying stashes after merge..."
             apply_stash_base_repo
             apply_stash_submodule "frontend/ee"
             apply_stash_submodule "server/ee"
@@ -557,7 +559,7 @@ merge_all() {
             ;;
     esac
 
-    _log_success "Merge from '$base_branch' completed!"
+    _log_success "🎉 Merge from '$base_branch' completed!"
 }
 
 #=============================================================================
@@ -568,7 +570,7 @@ update_git_submodules_plugin() {
     # Store the current directory
     local ORIGINAL_DIR="$(pwd)"
 
-    echo "Checking for updates for git-submodules plugin..."
+    echo "🔍 Checking for updates for git-submodules plugin..."
     
     # Validate plugin directory exists
     if [[ ! -d "$GIT_SUBMODULES_PLUGIN_DIR" ]]; then
@@ -598,27 +600,27 @@ update_git_submodules_plugin() {
 
     # Check if there are new updates
     if ! git diff --quiet HEAD origin/main; then
-        echo "A new update is available for git-submodules plugin."
+        echo "✨ A new update is available for git-submodules plugin."
 
         # Ask user if they want to update
-        read "RESPONSE?Do you want to update? (y/N): "
+        read "RESPONSE?🤔 Do you want to update? (y/N): "
 
         if [[ "$RESPONSE" =~ ^[Yy]$ ]]; then
-            echo "Updating git-submodules plugin..."
+            echo "⬇️  Updating git-submodules plugin..."
             if git reset --hard origin/main --quiet && git pull origin main --quiet; then
-                _log_success "Update complete!"
+                _log_success "🎉 Update complete!"
 
                 # Ask if they want to reload Zsh
-                read "RELOAD?Would you like to reload Zsh now? (y/N): "
+                read "RELOAD?🔄 Would you like to reload Zsh now? (y/N): "
 
                 if [[ "$RELOAD" =~ ^[Yy]$ ]]; then
-                    echo "Reloading Zsh..."
+                    echo "🔄 Reloading Zsh..."
                     # Store the current directory in an environment variable
                     export PREV_DIR="$ORIGINAL_DIR"
                     # Reload Zsh and restore the working directory
                     exec zsh -c 'cd "$PREV_DIR"; exec zsh'
                 else
-                    echo "You can reload manually by running: source ~/.zshrc"
+                    echo "💡 You can reload manually by running: source ~/.zshrc"
                 fi
             else
                 _log_error "Update failed"
@@ -626,10 +628,10 @@ update_git_submodules_plugin() {
                 return 1
             fi
         else
-            echo "Skipping update."
+            echo "⏭️  Skipping update."
         fi
     else
-        _log_success "You're already using the latest version of git-submodules plugin."
+        _log_success "🚀 You're already using the latest version of git-submodules plugin."
     fi
     
     # Return to original directory

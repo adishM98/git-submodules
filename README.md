@@ -1,15 +1,17 @@
 # Git Submodules - Oh My Zsh Plugin
 
-A clean and powerful Oh My Zsh plugin for managing Git repositories with submodules. This plugin provides essential utilities while maintaining simplicity and reliability.
+A clean and powerful Oh My Zsh plugin for managing Git repositories with submodules. This plugin provides essential utilities with an interactive, emoji-rich interface while maintaining simplicity and reliability.
 
 ## ✨ Features
 
 - 🎯 **Simple & Reliable** - Focused on core functionality that works
-- 🔄 **Interactive Operations** - User-friendly prompts for complex workflows
-- 📊 **Smart Logging** - Clear, emoji-based status messages with verbose control
+- 🎨 **Interactive UI** - Beautiful emoji-rich interface with numbered options
+- 🔄 **Smart Workflows** - User-friendly prompts for complex operations
+- 📊 **Visual Feedback** - Clear, contextual emoji messages and progress indicators
 - 🛡️ **Safe Operations** - Input validation and proper error handling
 - 🔧 **Stash Management** - Automatic stash handling for checkout and merge operations
 - ⚙️ **Auto-Update** - Self-updating capability with interactive prompts
+- 🔊 **Verbose Control** - Toggle detailed logging on/off with `toggle_verbose`
 
 ## 📦 Installation
 
@@ -130,42 +132,66 @@ toggle_verbose  # Enable/disable verbose output
 
 ```bash
 checkout_all
-# Prompts:
-# 1. Enter branch name
-# 2. Choose scope: base, submodules, both, or both with stash handling
+# Interactive prompts with emoji interface:
+# 🌿 Enter the branch name to checkout: feature-branch
+# 
+# 🎯 Where do you want to checkout the 'feature-branch' branch?
+# 1️⃣  🏠 Base repository
+# 2️⃣  📦 Submodule repositories  
+# 3️⃣  🌍 Both (Base + Submodules)
+# 4️⃣  🌍💾 Both (Base + Submodules) with Stash Handling
+# 🤔 Enter your choice (1/2/3/4): 4
 ```
 
 **Features:**
 - ✅ Automatic stash handling for uncommitted changes
 - ✅ Smart upstream tracking and pulling
-- ✅ Validation before operations
+- ✅ Visual progress indicators with emojis
 - ✅ Graceful error handling
 
 ### Smart Merge (`merge_all`) 
 
 ```bash
 merge_all
-# Prompts:
-# 1. Enter base branch to merge from
-# 2. Choose merge scope and stash handling
-# 3. Select specific submodules if needed
+# Interactive prompts with visual interface:
+# 🌳 Enter the base branch to merge from: main
+#
+# 🎯 Where do you want to merge 'main' into 'feature-branch'?
+# 1️⃣  🏠 Base repository
+# 2️⃣  📦 Submodule repositories
+# 3️⃣  🌍 Both (Base + Submodules)
+# 4️⃣  🌍💾 Both (Base + Submodules) with Stash Handling
+# 🤔 Enter your choice (1/2/3/4): 2
+#
+# 📦 Which submodule(s) do you want to merge into?
+# 1️⃣  🔹 frontend/ee
+# 2️⃣  🔹 server/ee  
+# 3️⃣  🌍 Both
+# 🤔 Enter your choice (1/2/3): 3
 ```
 
 **Features:**
-- 🔄 Flexible submodule selection (frontend/ee, server/ee, or both)
+- 🔄 Flexible submodule selection with visual indicators
 - 💾 Automatic stash management before/after merge
-- ⚠️ Clear feedback on merge operations
+- 📊 Real-time progress feedback with emojis
 - 🛡️ Pre-merge validation and fetching
 
 ### Interactive Branch Creation
 
 ```bash
 start_feature
-# Creates feature/branch-name with guided selection:
-# 1. Base repository only
-# 2. Submodules only  
-# 3. Specific folders (custom paths)
-# 4. All repositories
+# Interactive branch creation with visual prompts:
+# 🌿 Enter feature branch name: user-authentication
+#
+# 🎯 Where do you want to create the 'user-authentication' branch?
+# 1️⃣  🏠 Base repository
+# 2️⃣  📦 Submodule repositories
+# 3️⃣  📁 Specific folders  
+# 4️⃣  🌍 All (Base + Submodules)
+# 🤔 Enter your choice (1/2/3/4): 4
+#
+# ℹ️  🌍 Creating branch 'user-authentication' in base repository and submodules...
+# ✅ 🎉 Branch 'user-authentication' created successfully!
 ```
 
 ## 🛡️ Safety Features
@@ -187,20 +213,32 @@ start_feature
 ### Plugin Status
 ```bash
 git_submodules_status
-# Shows:
-# - Plugin directory and configuration
-# - Repository validation status
-# - Discovered submodules list
-# - Current verbose mode setting
+# Visual status display:
+# 🔧 === Git Submodules Plugin Status === 🔧
+# 📂 Plugin Directory: /path/to/plugin
+# 🔊 Verbose Mode: true
+# 🏠 Current Repository: ✅ Valid Git Repository
+# 📦 Submodules Found: 2
+#   🔸 frontend/ee
+#   🔸 server/ee
 ```
 
 ### Repository Status  
 ```bash
 status_all
-# Enhanced output with:
-# - Base repository status with branch info
-# - Individual submodule status sections
-# - Clean, formatted display
+# Visual status output:
+# 🏠 === Base Repository Status ===
+# ## main...origin/main
+#  M src/app.js
+#
+# 📦 === Submodule Status ===
+# 🔸 === frontend/ee ===  
+# ## feature-branch
+#  M components/Auth.jsx
+#
+# 🔸 === server/ee ===
+# ## feature-branch
+# ?? new-endpoint.js
 ```
 
 ## 🔄 Auto-Update
@@ -209,11 +247,14 @@ The plugin can update itself:
 
 ```bash
 update_git_submodules_plugin
-# Features:
-# - Checks for new versions from main branch
-# - Interactive update confirmation
-# - Automatic Zsh reload option
-# - Error handling with rollback
+# Interactive update experience:
+# 🔍 Checking for updates for git-submodules plugin...
+# ✨ A new update is available for git-submodules plugin.
+# 🤔 Do you want to update? (y/N): y
+# ⬇️  Updating git-submodules plugin...
+# ✅ 🎉 Update complete!
+# 🔄 Would you like to reload Zsh now? (y/N): y
+# 🔄 Reloading Zsh...
 ```
 
 ## 🚨 Troubleshooting
