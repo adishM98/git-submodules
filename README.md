@@ -1,4 +1,4 @@
-# Git Submodules - Enhanced Oh My Zsh Plugin
+# Git Submodules - Oh My Zsh Plugin
 
 A robust and feature-rich Oh My Zsh plugin that provides powerful utilities for managing Git repositories with submodules. This enhanced version includes improved error handling, security features, and better user experience.
 
