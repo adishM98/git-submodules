@@ -1,0 +1,227 @@
+#compdef pull_all push_all add_all commit_all status_all checkout_all merge_all create_branch_all create_feature_all create_hotfix_all create_release_all create_sprint_all create_revamp_all start_branch start_feature start_hotfix start_release start_sprint create_tag_all smart_commit_all generate_commit_message resolve_submodule_conflicts git_submodules_status toggle_verbose update_git_submodules_plugin configure_git_submodules show_git_submodules_config clear_submodule_cache list_all_stashes clear_all_stashes
+
+#=============================================================================
+# Git Submodules Plugin - Zsh Completion
+# Provides tab completion for all commands and flags
+#=============================================================================
+
+# Standard flags available for all commands
+_git_submodules_standard_flags() {
+    local -a flags
+    flags=(
+        '(-h --help)'{-h,--help}'[Show help for command]'
+        '(-n --dry-run)'{-n,--dry-run}'[Preview without executing]'
+        '(-q --quiet)'{-q,--quiet}'[Minimal output]'
+        '(-v --verbose)'{-v,--verbose}'[Detailed output]'
+        '(-j --json)'{-j,--json}'[JSON output format]'
+        '(-p --parallel)'{-p,--parallel}'[Use parallel execution]'
+        '--jobs[Number of parallel jobs]:jobs:(2 4 8 16)'
+        '(-f --force)'{-f,--force}'[Skip confirmations]'
+        '(-y --yes)'{-y,--yes}'[Auto-confirm prompts]'
+        '--scope[Target repositories]:scope:(base subs all)'
+    )
+    _arguments $flags
+}
+
+# Branch name completion
+_git_submodules_branches() {
+    local -a branches
+    branches=(${(f)"$(git branch -a 2>/dev/null | sed 's/^[* ]*//' | sed 's#^remotes/origin/##')"})
+    _describe 'branch' branches
+}
+
+# Submodule path completion
+_git_submodules_submodules() {
+    local -a submodules
+    submodules=(${(f)"$(git submodule status 2>/dev/null | awk '{print $2}')"})
+    _describe 'submodule' submodules
+}
+
+# Config keys completion
+_git_submodules_config_keys() {
+    local -a keys
+    keys=(
+        'parallel_enabled:Enable parallel execution'
+        'parallel_jobs:Number of parallel jobs'
+        'menu_style:Menu interaction style'
+        'progress_style:Progress indicator style'
+        'emoji_enabled:Enable emoji output'
+        'atomic_commits:Enable atomic commits'
+        'dry_run_default:Default to dry-run mode'
+        'confirm_destructive:Confirm destructive operations'
+        'cache_enabled:Enable caching'
+        'cache_ttl:Cache TTL in seconds'
+        'verbose_mode:Enable verbose output'
+        'quiet_mode:Enable quiet mode'
+        'auto_stash:Auto-stash before operations'
+    )
+    _describe 'config key' keys
+}
+
+# Completion for pull_all
+_git_submodules_pull_all() {
+    _git_submodules_standard_flags
+}
+
+# Completion for push_all
+_git_submodules_push_all() {
+    _git_submodules_standard_flags
+}
+
+# Completion for add_all
+_git_submodules_add_all() {
+    _git_submodules_standard_flags
+}
+
+# Completion for commit_all
+_git_submodules_commit_all() {
+    _arguments \
+        '(-h --help)'{-h,--help}'[Show help]' \
+        '(-n --dry-run)'{-n,--dry-run}'[Preview without executing]' \
+        '(-q --quiet)'{-q,--quiet}'[Minimal output]' \
+        '(-v --verbose)'{-v,--verbose}'[Detailed output]' \
+        '--scope[Target repositories]:scope:(base subs all)' \
+        '1:commit message:'
+}
+
+# Completion for status_all
+_git_submodules_status_all() {
+    _arguments \
+        '(-h --help)'{-h,--help}'[Show help]' \
+        '(-j --json)'{-j,--json}'[JSON output]' \
+        '(-q --quiet)'{-q,--quiet}'[Minimal output]'
+}
+
+# Completion for checkout_all
+_git_submodules_checkout_all() {
+    _arguments \
+        '(-h --help)'{-h,--help}'[Show help]' \
+        '(-y --yes)'{-y,--yes}'[Auto-confirm]' \
+        '--scope[Target repositories]:scope:(base subs all)' \
+        '1:branch:_git_submodules_branches'
+}
+
+# Completion for merge_all
+_git_submodules_merge_all() {
+    _arguments \
+        '(-h --help)'{-h,--help}'[Show help]' \
+        '(-n --dry-run)'{-n,--dry-run}'[Preview without executing]' \
+        '(-y --yes)'{-y,--yes}'[Auto-confirm]' \
+        '--scope[Target repositories]:scope:(base subs all)' \
+        '1:branch:_git_submodules_branches'
+}
+
+# Completion for create_branch_all
+_git_submodules_create_branch_all() {
+    _arguments \
+        '(-h --help)'{-h,--help}'[Show help]' \
+        '--scope[Target repositories]:scope:(base subs all)' \
+        '1:branch name:'
+}
+
+# Completion for create_feature_all
+_git_submodules_create_feature_all() {
+    _arguments \
+        '(-h --help)'{-h,--help}'[Show help]' \
+        '1:feature name:'
+}
+
+# Completion for create_hotfix_all
+_git_submodules_create_hotfix_all() {
+    _arguments \
+        '(-h --help)'{-h,--help}'[Show help]' \
+        '1:hotfix name:'
+}
+
+# Completion for create_release_all
+_git_submodules_create_release_all() {
+    _arguments \
+        '(-h --help)'{-h,--help}'[Show help]' \
+        '1:release version:'
+}
+
+# Completion for create_tag_all
+_git_submodules_create_tag_all() {
+    _arguments \
+        '(-h --help)'{-h,--help}'[Show help]' \
+        '1:tag name:'
+}
+
+# Completion for smart_commit_all
+_git_submodules_smart_commit_all() {
+    _arguments \
+        '(-h --help)'{-h,--help}'[Show help]' \
+        '(-n --dry-run)'{-n,--dry-run}'[Preview without executing]' \
+        '--scope[Target repositories]:scope:(base subs all)'
+}
+
+# Main completion dispatcher
+_git-submodules() {
+    local curcontext="$curcontext" state line
+    typeset -A opt_args
+
+    case "$words[1]" in
+        pull_all)
+            _git_submodules_pull_all
+            ;;
+        push_all)
+            _git_submodules_push_all
+            ;;
+        add_all)
+            _git_submodules_add_all
+            ;;
+        commit_all)
+            _git_submodules_commit_all
+            ;;
+        status_all)
+            _git_submodules_status_all
+            ;;
+        checkout_all)
+            _git_submodules_checkout_all
+            ;;
+        merge_all)
+            _git_submodules_merge_all
+            ;;
+        create_branch_all)
+            _git_submodules_create_branch_all
+            ;;
+        create_feature_all|start_feature)
+            _git_submodules_create_feature_all
+            ;;
+        create_hotfix_all|start_hotfix)
+            _git_submodules_create_hotfix_all
+            ;;
+        create_release_all|start_release)
+            _git_submodules_create_release_all
+            ;;
+        create_tag_all)
+            _git_submodules_create_tag_all
+            ;;
+        smart_commit_all)
+            _git_submodules_smart_commit_all
+            ;;
+        *)
+            _git_submodules_standard_flags
+            ;;
+    esac
+}
+
+# Register completion for each command
+compdef _git_submodules_pull_all pull_all
+compdef _git_submodules_push_all push_all
+compdef _git_submodules_add_all add_all
+compdef _git_submodules_commit_all commit_all
+compdef _git_submodules_status_all status_all
+compdef _git_submodules_checkout_all checkout_all
+compdef _git_submodules_merge_all merge_all
+compdef _git_submodules_create_branch_all create_branch_all
+compdef _git_submodules_create_feature_all create_feature_all
+compdef _git_submodules_create_feature_all start_feature
+compdef _git_submodules_create_hotfix_all create_hotfix_all
+compdef _git_submodules_create_hotfix_all start_hotfix
+compdef _git_submodules_create_release_all create_release_all
+compdef _git_submodules_create_release_all start_release
+compdef _git_submodules_create_tag_all create_tag_all
+compdef _git_submodules_smart_commit_all smart_commit_all
+
+_git-submodules "$@"
