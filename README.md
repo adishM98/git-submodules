@@ -4,14 +4,28 @@ A clean and powerful Oh My Zsh plugin for managing Git repositories with submodu
 
 ## ✨ Features
 
+### Core Capabilities
 - 🎯 **Simple & Reliable** - Focused on core functionality that works
-- 🎨 **Interactive UI** - Beautiful emoji-rich interface with numbered options
+- 🎨 **Interactive UI** - Beautiful emoji-rich interface with 4 menu modes
 - 🔄 **Smart Workflows** - User-friendly prompts for complex operations
-- 📊 **Visual Feedback** - Clear, contextual emoji messages and progress indicators
-- 🛡️ **Safe Operations** - Input validation and proper error handling
-- 🔧 **Stash Management** - Automatic stash handling for checkout and merge operations
+- 📊 **Visual Feedback** - 4 progress indicator styles with real-time updates
+- 🛡️ **Safe Operations** - Dry-run preview, validation, and error handling
+- 🔧 **Stash Management** - Automatic stash handling with timestamp-based naming
 - ⚙️ **Auto-Update** - Self-updating capability with interactive prompts
 - 🔊 **Verbose Control** - Toggle detailed logging on/off with `toggle_verbose`
+
+### Modern Features (v2.0+)
+- 🚀 **Dynamic Detection** - Works on ANY repository (no hardcoded submodule paths!)
+- ⚡ **Parallel Operations** - 3-5x faster operations with background execution
+- 🎛️ **Configuration System** - 13 customizable settings via interactive wizard
+- 🏴 **CLI Flags** - 10 standard flags (--help, --dry-run, --parallel, --json, etc.)
+- 📋 **Shell Completion** - Full tab completion for Zsh and Bash
+- 🔌 **JSON Output** - CI/CD integration with structured data export
+- 🧪 **Dry-Run Mode** - Preview operations before execution
+- ⚛️ **Atomic Operations** - All-or-nothing commits with automatic rollback
+- 📜 **Operation History** - Track operations with undo capability
+- 🎨 **Enhanced Menus** - Arrow navigation, keyboard shortcuts, multi-select
+- 📊 **Smart Commit** - 10x faster analysis with single-pass optimization
 
 ## 📦 Installation
 
@@ -55,11 +69,115 @@ git_submodules_status
 # Pull latest changes from all repositories
 pull_all
 
+# Pull with modern CLI flags
+pull_all --parallel --jobs=8 --verbose
+
+# Preview commit without executing
+commit_all --dry-run "feat: new feature"
+
+# Get JSON output for CI/CD
+status_all --json | jq .
+
 # Create a feature branch interactively
 start_feature
 
+# Configure the plugin interactively
+configure_git_submodules
+
 # Control logging verbosity
 toggle_verbose
+```
+
+## ⚙️ Modern Configuration
+
+### Interactive Setup
+
+The plugin now includes a comprehensive configuration system:
+
+```bash
+# Run the interactive configuration wizard
+configure_git_submodules
+
+# View current configuration
+show_git_submodules_config
+
+# Reset to defaults
+reset_git_submodules_config
+```
+
+### Configuration File
+
+Settings are stored in `~/.config/git-submodules/config`:
+
+```bash
+# Performance
+parallel_enabled=false        # Enable parallel operations
+parallel_jobs=4               # Number of concurrent jobs
+
+# User Interface
+menu_style=numbered           # Menu interaction: numbered, arrow, keyboard, both
+progress_style=bar            # Progress style: bar, spinner, dots, percentage
+emoji_enabled=true            # Use emoji in output
+
+# Safety
+atomic_commits=false          # Enable all-or-nothing commits
+dry_run_default=false         # Preview operations by default
+confirm_destructive=true      # Confirm dangerous operations
+
+# Caching
+cache_enabled=true            # Cache submodule list
+cache_ttl=60                  # Cache lifetime in seconds
+
+# Output
+verbose_mode=true             # Show detailed output
+quiet_mode=false              # Minimal output
+auto_stash=true               # Automatically stash/apply changes
+```
+
+## 🏴 CLI Flags
+
+All commands now support modern CLI flags for flexibility:
+
+### Standard Flags
+
+```bash
+# Help
+pull_all --help              # Show command help
+
+# Execution Control
+commit_all --dry-run "msg"   # Preview without executing
+push_all --force             # Skip confirmations
+pull_all --yes               # Auto-confirm all prompts
+
+# Output Control
+status_all --quiet           # Minimal output (errors only)
+pull_all --verbose           # Detailed output
+status_all --json            # JSON format for CI/CD
+
+# Performance
+pull_all --parallel          # Use parallel execution
+push_all --jobs=8            # Set parallel job count
+
+# Scope Control
+commit_all --scope=base "msg"  # Base repository only
+push_all --scope=subs          # Submodules only
+pull_all --scope=all           # All repositories (default)
+```
+
+### Examples
+
+```bash
+# Dry-run commit to preview changes
+add_all && commit_all --dry-run "feat: add user auth"
+
+# Parallel pull with 8 jobs
+pull_all --parallel --jobs=8 --verbose
+
+# JSON status for CI/CD pipeline
+status_all --json > status.json
+
+# Quiet push with auto-confirm
+push_all --quiet --yes --scope=subs
 ```
 
 ## 📋 Available Commands
@@ -103,6 +221,39 @@ toggle_verbose
 | `merge_all` | Interactive merge with stash handling | Smart conflict resolution |
 | `create_tag_all <name>` | Create and push tags across repos | Validation and error handling |
 
+### Atomic Operations (All-or-Nothing)
+
+| Command | Description | Safety |
+|---------|-------------|--------|
+| `atomic_commit_all "<msg>"` | Atomic commit with rollback on failure | Creates checkpoint, rolls back on error |
+| `atomic_merge_all <branch>` | Atomic merge with rollback on failure | All repos succeed or all rolled back |
+| `atomic_checkout_all <branch>` | Atomic checkout with rollback | Consistent state across all repos |
+
+### Parallel Operations (3-5x Faster)
+
+| Command | Description | Performance |
+|---------|-------------|-------------|
+| `parallel_pull_all [jobs]` | Pull all repos in parallel | 3-5x faster than sequential |
+| `parallel_push_all [jobs]` | Push all repos in parallel | Background execution |
+| `parallel_fetch_all [jobs]` | Fetch all repos in parallel | Configurable job count |
+| `parallel_status_all [jobs]` | Status check in parallel | Fast repository overview |
+
+### Operation History & Undo
+
+| Command | Description | Purpose |
+|---------|-------------|---------|
+| `git_submodules_history [count]` | Show recent operations | View last N operations |
+| `git_submodules_undo [entry]` | Undo previous operation | Rollback commits, merges |
+| `git_submodules_clear_history` | Clear operation history | Remove all history entries |
+
+### Checkpoint Management
+
+| Command | Description | Use Case |
+|---------|-------------|----------|
+| `git_submodules_checkpoint [name]` | Create manual checkpoint | Before risky operations |
+| `git_submodules_restore [id]` | Restore from checkpoint | Recover from mistakes |
+| `git_submodules_checkpoints` | List all checkpoints | View available restore points |
+
 ### Smart Features
 
 | Command | Description | Purpose |
@@ -119,20 +270,16 @@ toggle_verbose
 | `toggle_verbose` | Control output verbosity | Customize logging |
 | `update_git_submodules_plugin` | Update plugin to latest version | Auto-update |
 
-## ⚙️ Configuration
+## 🎛️ Configuration (Legacy)
 
-The plugin supports environment variables for customization:
+The plugin still supports legacy environment variables:
 
 ```bash
 # Control output verbosity (default: true)
 export GIT_SUBMODULES_VERBOSE=true
 ```
 
-Add this to your `~/.zshrc` to make it persistent, or use the runtime toggle:
-
-```bash
-toggle_verbose  # Enable/disable verbose output
-```
+**Note:** For the modern configuration system with 13+ settings, see the [Modern Configuration](#modern-configuration) section above.
 
 ## 🔧 Detailed Command Usage
 
@@ -279,6 +426,220 @@ resolve_submodule_conflicts
 - 🔍 **Detailed Info** - Shows commit hashes and messages for each conflict
 - 🎨 **Multiple Strategies** - Batch resolution or individual handling
 - 🔄 **Latest Updates** - Option to update to newest commits
+
+## 🚀 New Feature Usage Examples
+
+### Atomic Operations
+
+Atomic operations ensure all-or-nothing consistency across repositories:
+
+```bash
+# Atomic commit - if ANY repo fails, ALL are rolled back
+atomic_commit_all "feat: add user authentication"
+
+# Success output:
+# ⚛️  === Atomic Commit (All-or-Nothing) ===
+# 📸 Creating checkpoint...
+# 💾 Committing base repository...
+# 📦 Committing submodules...
+# ✅ All repositories committed successfully
+
+# Failure output (automatic rollback):
+# ❌ === Atomic Commit Failed ===
+#    🏠 Base repository: Failed
+#    📦 frontend/ee: Failed
+# 🔙 Rolling back all changes...
+# ❌ Atomic commit failed and rolled back
+
+# Atomic merge with automatic rollback on conflicts
+atomic_merge_all main
+
+# Atomic checkout - all repos switch or none do
+atomic_checkout_all feature-branch
+```
+
+### Parallel Operations
+
+Execute operations across multiple repos simultaneously:
+
+```bash
+# Pull all repos in parallel (3-5x faster)
+parallel_pull_all
+
+# Specify number of parallel jobs
+parallel_pull_all 8
+
+# Parallel push with 4 concurrent operations
+parallel_push_all 4
+
+# Fast status check across all repos
+parallel_status_all
+
+# Performance comparison
+benchmark_parallel_vs_sequential pull
+# Output:
+# 📊 === Performance Benchmark: pull ===
+# ⏱️  Sequential execution...
+# ⚡ Parallel execution...
+# 📈 Results:
+#    Sequential: 12s
+#    Parallel:   3s
+#    Speedup:    4.00x faster
+```
+
+### Operation History & Undo
+
+Track and undo operations:
+
+```bash
+# View recent operations
+git_submodules_history
+
+# Output:
+# 📜 === Recent Operations (last 10) ===
+#   1. [2025-01-15 14:30:00] ✅ commit_all "feat: add auth"
+#   2. [2025-01-15 14:25:00] ✅ merge_all main
+#   3. [2025-01-15 14:20:00] ✅ checkout_all feature-branch
+
+# Undo last commit
+git_submodules_undo 1
+
+# Interactive confirmation:
+# ⚠️  Undo Operation
+#    Operation: commit_all "feat: add auth"
+#    Time: 2025-01-15 14:30:00
+#
+#    Continue with undo? (y/N): y
+#
+# 🔙 Undoing last commit...
+# ✅ Commit undone in all repositories
+
+# Clear all history
+git_submodules_clear_history
+```
+
+### Checkpoint Management
+
+Create restore points before risky operations:
+
+```bash
+# Create checkpoint before dangerous operation
+git_submodules_checkpoint "before-refactor"
+
+# Perform risky changes...
+# ... something goes wrong ...
+
+# List available checkpoints
+git_submodules_checkpoints
+
+# Output:
+# 📋 === Available Checkpoints ===
+#   1. [2025-01-15 15:00:00] before-refactor
+#   2. [2025-01-15 14:30:00] commit_all
+
+# Restore from checkpoint
+git_submodules_restore before-refactor
+
+# Output:
+# 🔙 === Restoring Checkpoint: before-refactor ===
+# 🏠 Restoring base repository to main @ a1b2c3d
+# 📦 Restoring frontend/ee to main @ e5f6g7h
+# 📦 Restoring server/ee to main @ x1y2z3a
+# ✅ Checkpoint restored successfully
+```
+
+### Dry-Run Mode
+
+Preview operations before executing:
+
+```bash
+# Preview commit without executing
+commit_all --dry-run "feat: add new feature"
+
+# Output:
+# 🔍 === DRY-RUN: commit_all ===
+# 📋 Preview:
+#    Message: "feat: add new feature"
+#
+# 🏠 Base Repository:
+#      🔄 src/auth.js (modified)
+#      ✅ src/utils.js (added)
+#
+# 📦 Submodules:
+#      🔸 frontend/ee
+#         🔄 components/Login.jsx (modified)
+#      🔸 server/ee
+#         ✅ routes/auth.js (added)
+#
+# ℹ️  This is a dry-run. No changes were made.
+
+# Preview merge
+merge_all --dry-run
+
+# Preview with verbose output
+pull_all --dry-run --verbose
+```
+
+### JSON Output for CI/CD
+
+Export structured data for automation:
+
+```bash
+# Get status as JSON
+status_all --json
+
+# Output:
+# {
+#   "base": {
+#     "branch": "main",
+#     "status": "M src/app.js",
+#     "ahead": 2,
+#     "behind": 0
+#   },
+#   "submodules": [
+#     {
+#       "path": "frontend/ee",
+#       "branch": "main",
+#       "status": "",
+#       "ahead": 1,
+#       "behind": 0
+#     }
+#   ]
+# }
+
+# Use in CI/CD pipeline
+status_all --json | jq '.base.ahead' > commits_ahead.txt
+
+# Check for uncommitted changes in CI
+if status_all --json | jq -e '.base.status != ""' > /dev/null; then
+  echo "Uncommitted changes detected"
+  exit 1
+fi
+
+# List submodules as JSON
+git_submodules_list --json | jq '.submodules[].path'
+```
+
+### Enhanced Interactive Menus
+
+Multiple interaction modes for different preferences:
+
+```bash
+# Configure menu style
+configure_git_submodules
+
+# Arrow navigation mode
+# Use ↑/↓ to navigate, Enter to select
+
+# Keyboard shortcuts mode
+# Press letter keys for quick selection
+
+# Combined mode
+# Use both arrows and keyboard shortcuts
+
+# Multi-select mode (space to toggle, enter to confirm)
+# Select multiple repos/submodules at once
+```
 
 ## 🛡️ Safety Features
 
