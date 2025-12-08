@@ -10,25 +10,41 @@ GIT_SUBMODULES_PLUGIN_DIR="${${(%):-%x}:A:h}"
 GIT_SUBMODULES_VERBOSE=${GIT_SUBMODULES_VERBOSE:-true}
 
 #=============================================================================
+# Load Modular Components (CLI Enhancements v2.0)
+#=============================================================================
+
+# Core modules
+source "${GIT_SUBMODULES_PLUGIN_DIR}/lib/core/config.zsh"
+source "${GIT_SUBMODULES_PLUGIN_DIR}/lib/core/errors.zsh"
+
+# UI modules
+source "${GIT_SUBMODULES_PLUGIN_DIR}/lib/ui/theme.zsh"
+source "${GIT_SUBMODULES_PLUGIN_DIR}/lib/ui/logging.zsh"
+
+# Help system modules
+source "${GIT_SUBMODULES_PLUGIN_DIR}/lib/help/help.zsh"
+source "${GIT_SUBMODULES_PLUGIN_DIR}/lib/help/command-help.zsh"
+source "${GIT_SUBMODULES_PLUGIN_DIR}/lib/help/first-run.zsh"
+source "${GIT_SUBMODULES_PLUGIN_DIR}/lib/help/discovery.zsh"
+
+# Alias modules
+source "${GIT_SUBMODULES_PLUGIN_DIR}/lib/aliases/aliases.zsh"
+source "${GIT_SUBMODULES_PLUGIN_DIR}/lib/aliases/custom.zsh"
+source "${GIT_SUBMODULES_PLUGIN_DIR}/lib/aliases/completion.zsh"
+
+# Load user configuration and custom aliases
+_load_config
+_load_custom_aliases
+
+# Optional: Show welcome message on first run (uncomment to enable)
+# _check_first_run
+
+#=============================================================================
 # Utility Functions
 #=============================================================================
 
-# Logging functions
-_log_info() {
-    [[ "$GIT_SUBMODULES_VERBOSE" == "true" ]] && echo "ℹ️  $*"
-}
-
-_log_success() {
-    echo "✅ $*"
-}
-
-_log_warning() {
-    echo "⚠️  $*"
-}
-
-_log_error() {
-    echo "❌ $*" >&2
-}
+# Note: Logging functions now sourced from lib/ui/logging.zsh
+# (_log_info, _log_success, _log_warning, _log_error)
 
 # Toggle verbose mode
 toggle_verbose() {
@@ -67,16 +83,20 @@ git_submodules_status() {
 
 # Checkout all repositories (including submodules)
 checkout_interactive() {
+    # Check for --help flag
+    _with_help "checkout_all" "$@" && return 0
+
+    # Validate git repository
+    _validate_git_repo || return $?
+
     local branch_name scope
 
     # Prompt for branch name
     echo -n "🌿 Enter the branch name to checkout: "
     read branch_name
 
-    if [ -z "$branch_name" ]; then
-        _log_error "Branch name is required!"
-        return 1
-    fi
+    # Validate branch name
+    _validate_branch_name "$branch_name" "checkout_interactive" || return $?
 
     # Get the current branch
     local current_branch
@@ -228,11 +248,16 @@ add_all() {
 
 # Create a new branch across repositories
 create_branch_all() {
+    # Check for --help flag
+    _with_help "create_branch_all" "$@" && return 0
+
+    # Validate git repository
+    _validate_git_repo || return $?
+
     local branch_name="$1"
-    if [ -z "$branch_name" ]; then
-        _log_error "Branch name required! Usage: create_branch_all <branch_name>"
-        return 1
-    fi
+
+    # Validate branch name
+    _validate_branch_name "$branch_name" "create_branch_all" || return $?
     
     _log_info "🏠 Creating branch '$branch_name' in base repository..."
     git checkout -b "$branch_name" || return 1
@@ -280,10 +305,16 @@ create_tag_all() {
 
 # Commit all changes with a message
 commit_all() {
+    # Check for --help flag
+    _with_help "commit_all" "$@" && return 0
+
+    # Validate git repository
+    _validate_git_repo || return $?
+
     local message="$1"
     if [ -z "$message" ]; then
-        _log_error "Commit message required! Usage: commit_all \"<message>\""
-        return 1
+        _error_with_help $ERR_INVALID_INPUT "Commit message required" "commit_all <message>"
+        return $ERR_INVALID_INPUT
     fi
     
     _log_info "💾 Committing changes in base repository..."
@@ -424,10 +455,19 @@ start_branch() { create_branch_interactive ""; }
 #=============================================================================
 
 merge_all() {
+    # Check for --help flag
+    _with_help "merge_all" "$@" && return 0
+
+    # Validate git repository
+    _validate_git_repo || return $?
+
     local base_branch current_branch scope
 
     echo -n "🌳 Enter the base branch to merge from: "
     read base_branch
+
+    # Validate branch name
+    _validate_branch_name "$base_branch" "merge_all" || return $?
 
     if [ -z "$base_branch" ]; then
         _log_error "Base branch is required!"

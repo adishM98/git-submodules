@@ -13,6 +13,17 @@ A clean and powerful Oh My Zsh plugin for managing Git repositories with submodu
 - ⚙️ **Auto-Update** - Self-updating capability with interactive prompts
 - 🔊 **Verbose Control** - Toggle detailed logging on/off with `toggle_verbose`
 
+### NEW in v2.1: CLI Friendliness Enhancements 🚀
+
+- 🎨 **Theme System** - 4 display modes (emoji, ansi, plain, minimal) for different terminals
+- 💡 **Enhanced Help** - Comprehensive help system with tutorials, workflows, and command discovery
+- ⌨️ **Command Aliases** - 20+ built-in shortcuts + custom alias system
+- ✅ **Better Errors** - Contextual error messages with recovery suggestions and validation
+- 📚 **Interactive Tutorial** - Built-in beginner's guide and workflow patterns
+- 🔍 **Command Discovery** - Search and list commands with `list_commands` and `search_commands`
+- ⚡ **Tab Completion** - Intelligent auto-completion for commands, themes, and help topics
+- 🆘 **--help Flags** - Quick help available on any command with `--help` or `-h`
+
 ## 📦 Installation
 
 ### Method 1: Oh My Zsh Plugin (Recommended)
@@ -414,6 +425,85 @@ git_submodules_status  # Check plugin status
 - ✅ **Verify submodule status** before bulk operations
 - ✅ Use **interactive commands** for complex workflows
 - ✅ **Keep backups** of important work
+
+## ⚙️ Configuration & Themes (v2.1+)
+
+The plugin now supports customizable themes and configuration!
+
+### Environment Variables
+
+```bash
+export GIT_SUBMODULES_THEME="emoji"      # emoji, ansi, plain, minimal
+export GIT_SUBMODULES_VERBOSE="true"     # true, false
+export GIT_SUBMODULES_COLOR="auto"       # auto, always, never
+```
+
+### Change Theme
+
+```bash
+set_theme ansi           # ANSI colors with ASCII icons
+set_theme plain          # Plain text (accessibility mode)
+set_theme minimal        # Ultra-minimal output
+set_theme emoji          # Rich emoji icons (default)
+```
+
+### Configuration Wizard
+
+```bash
+configure_git_submodules    # Interactive configuration wizard
+show_config                 # View current settings
+```
+
+## 📖 Getting Help
+
+The plugin includes a comprehensive help system:
+
+```bash
+help                     # Show all commands
+help tutorial            # Beginner's step-by-step guide
+help workflows           # Common workflow patterns
+help <command>           # Detailed command help
+<command> --help         # Quick help for any command
+
+# Discovery
+list_commands            # List all commands by category
+search_commands commit   # Search commands by keyword
+```
+
+## 🔤 Aliases & Shortcuts
+
+### Built-in Aliases
+
+```bash
+# Core operations
+pall        # pull_all
+phall       # push_all
+aall        # add_all
+call        # commit_all
+sall        # status_all
+
+# Interactive workflows
+gfeat       # start_feature
+gfix        # start_hotfix
+grel        # start_release
+
+# Smart features
+scommit     # smart_commit_all
+fixsub      # resolve_submodule_conflicts
+
+# Utility
+gsmstatus   # git_submodules_status
+gsmhelp     # help
+gsmtheme    # set_theme
+```
+
+### Custom Aliases
+
+```bash
+add_alias mywork "start_feature && echo 'Ready!'"
+list_aliases
+remove_alias mywork
+```
 
 ## 🔒 Security Notes
 
