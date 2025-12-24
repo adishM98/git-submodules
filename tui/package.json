@@ -1,0 +1,68 @@
+{
+  "name": "git-submodules-tui",
+  "version": "2.1.0",
+  "description": "Interactive terminal UI for managing Git repositories with submodules",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "gsm-tui": "./bin/gsm-tui.js"
+  },
+  "files": [
+    "dist/**/*",
+    "lib/bridge.zsh",
+    "bin/gsm-tui.js",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "dev": "tsx watch src/index.tsx",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "type-check": "tsc --noEmit",
+    "prepublishOnly": "npm run build",
+    "prepack": "mkdir -p lib && cp ../lib/tui/bridge.zsh lib/bridge.zsh"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/adishM98/git-submodules.git",
+    "directory": "tui"
+  },
+  "bugs": {
+    "url": "https://github.com/adishM98/git-submodules/issues"
+  },
+  "homepage": "https://github.com/adishM98/git-submodules/tree/main/tui#readme",
+  "dependencies": {
+    "ink": "^4.4.1",
+    "react": "^18.2.0",
+    "ink-spinner": "^5.0.0",
+    "ink-text-input": "^5.0.1",
+    "ink-select-input": "^5.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.48",
+    "@types/node": "^20.11.5",
+    "typescript": "^5.3.3",
+    "tsx": "^4.7.0",
+    "@typescript-eslint/eslint-plugin": "^6.19.0",
+    "@typescript-eslint/parser": "^6.19.0"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "keywords": [
+    "git",
+    "submodules",
+    "tui",
+    "terminal",
+    "cli",
+    "ink",
+    "react",
+    "interactive",
+    "developer-tools",
+    "git-tools",
+    "terminal-ui",
+    "command-line"
+  ],
+  "author": "adishM98",
+  "license": "MIT"
+}

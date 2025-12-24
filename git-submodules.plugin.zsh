@@ -10,76 +10,93 @@ GIT_SUBMODULES_PLUGIN_DIR="${${(%):-%x}:A:h}"
 GIT_SUBMODULES_VERBOSE=${GIT_SUBMODULES_VERBOSE:-true}
 
 #=============================================================================
-# Load Library Modules
+# Load Library Modules (v2.0 + v2.1 Combined)
 #=============================================================================
 
-# Source the submodule detection module
+# Core modules - Submodule detection (v2.0)
 [[ -f "$GIT_SUBMODULES_PLUGIN_DIR/lib/core/submodule-detection.zsh" ]] && \
     source "$GIT_SUBMODULES_PLUGIN_DIR/lib/core/submodule-detection.zsh"
 
-# Source the unified stash management module
-[[ -f "$GIT_SUBMODULES_PLUGIN_DIR/lib/git/stash.zsh" ]] && \
-    source "$GIT_SUBMODULES_PLUGIN_DIR/lib/git/stash.zsh"
-
-# Source the atomic operations module
-[[ -f "$GIT_SUBMODULES_PLUGIN_DIR/lib/git/operations.zsh" ]] && \
-    source "$GIT_SUBMODULES_PLUGIN_DIR/lib/git/operations.zsh"
-
-# Source the configuration system module
+# Core modules - Configuration (v2.0 + v2.1)
 [[ -f "$GIT_SUBMODULES_PLUGIN_DIR/lib/core/config.zsh" ]] && \
     source "$GIT_SUBMODULES_PLUGIN_DIR/lib/core/config.zsh"
 
-# Source the validation & dry-run module
+# Core modules - Validation & errors (v2.0 + v2.1)
 [[ -f "$GIT_SUBMODULES_PLUGIN_DIR/lib/core/validation.zsh" ]] && \
     source "$GIT_SUBMODULES_PLUGIN_DIR/lib/core/validation.zsh"
+[[ -f "$GIT_SUBMODULES_PLUGIN_DIR/lib/core/errors.zsh" ]] && \
+    source "$GIT_SUBMODULES_PLUGIN_DIR/lib/core/errors.zsh"
 
-# Source the enhanced menu system module
-[[ -f "$GIT_SUBMODULES_PLUGIN_DIR/lib/ui/menus.zsh" ]] && \
-    source "$GIT_SUBMODULES_PLUGIN_DIR/lib/ui/menus.zsh"
-
-# Source the progress indicators module
-[[ -f "$GIT_SUBMODULES_PLUGIN_DIR/lib/ui/progress.zsh" ]] && \
-    source "$GIT_SUBMODULES_PLUGIN_DIR/lib/ui/progress.zsh"
-
-# Source the CLI flag parser module
+# Core modules - CLI parser (v2.0)
 [[ -f "$GIT_SUBMODULES_PLUGIN_DIR/lib/core/cli-parser.zsh" ]] && \
     source "$GIT_SUBMODULES_PLUGIN_DIR/lib/core/cli-parser.zsh"
 
-# Source the JSON output module
+# UI modules - Theme and logging (v2.1)
+[[ -f "$GIT_SUBMODULES_PLUGIN_DIR/lib/ui/theme.zsh" ]] && \
+    source "$GIT_SUBMODULES_PLUGIN_DIR/lib/ui/theme.zsh"
+[[ -f "$GIT_SUBMODULES_PLUGIN_DIR/lib/ui/logging.zsh" ]] && \
+    source "$GIT_SUBMODULES_PLUGIN_DIR/lib/ui/logging.zsh"
+
+# UI modules - Menus and progress (v2.0)
+[[ -f "$GIT_SUBMODULES_PLUGIN_DIR/lib/ui/menus.zsh" ]] && \
+    source "$GIT_SUBMODULES_PLUGIN_DIR/lib/ui/menus.zsh"
+[[ -f "$GIT_SUBMODULES_PLUGIN_DIR/lib/ui/progress.zsh" ]] && \
+    source "$GIT_SUBMODULES_PLUGIN_DIR/lib/ui/progress.zsh"
+
+# Git operations (v2.0)
+[[ -f "$GIT_SUBMODULES_PLUGIN_DIR/lib/git/stash.zsh" ]] && \
+    source "$GIT_SUBMODULES_PLUGIN_DIR/lib/git/stash.zsh"
+[[ -f "$GIT_SUBMODULES_PLUGIN_DIR/lib/git/operations.zsh" ]] && \
+    source "$GIT_SUBMODULES_PLUGIN_DIR/lib/git/operations.zsh"
+
+# Utility modules (v2.0)
 [[ -f "$GIT_SUBMODULES_PLUGIN_DIR/lib/utils/json-output.zsh" ]] && \
     source "$GIT_SUBMODULES_PLUGIN_DIR/lib/utils/json-output.zsh"
-
-# Source the parallel operations module
 [[ -f "$GIT_SUBMODULES_PLUGIN_DIR/lib/utils/parallel.zsh" ]] && \
     source "$GIT_SUBMODULES_PLUGIN_DIR/lib/utils/parallel.zsh"
-
-# Source the operation history module
 [[ -f "$GIT_SUBMODULES_PLUGIN_DIR/lib/utils/history.zsh" ]] && \
     source "$GIT_SUBMODULES_PLUGIN_DIR/lib/utils/history.zsh"
 
-# Load shell completions
+# Help system modules (v2.1)
+[[ -f "$GIT_SUBMODULES_PLUGIN_DIR/lib/help/help.zsh" ]] && \
+    source "$GIT_SUBMODULES_PLUGIN_DIR/lib/help/help.zsh"
+[[ -f "$GIT_SUBMODULES_PLUGIN_DIR/lib/help/command-help.zsh" ]] && \
+    source "$GIT_SUBMODULES_PLUGIN_DIR/lib/help/command-help.zsh"
+[[ -f "$GIT_SUBMODULES_PLUGIN_DIR/lib/help/first-run.zsh" ]] && \
+    source "$GIT_SUBMODULES_PLUGIN_DIR/lib/help/first-run.zsh"
+[[ -f "$GIT_SUBMODULES_PLUGIN_DIR/lib/help/discovery.zsh" ]] && \
+    source "$GIT_SUBMODULES_PLUGIN_DIR/lib/help/discovery.zsh"
+
+# Alias modules (v2.1)
+[[ -f "$GIT_SUBMODULES_PLUGIN_DIR/lib/aliases/aliases.zsh" ]] && \
+    source "$GIT_SUBMODULES_PLUGIN_DIR/lib/aliases/aliases.zsh"
+[[ -f "$GIT_SUBMODULES_PLUGIN_DIR/lib/aliases/custom.zsh" ]] && \
+    source "$GIT_SUBMODULES_PLUGIN_DIR/lib/aliases/custom.zsh"
+[[ -f "$GIT_SUBMODULES_PLUGIN_DIR/lib/aliases/completion.zsh" ]] && \
+    source "$GIT_SUBMODULES_PLUGIN_DIR/lib/aliases/completion.zsh"
+
+# TUI modules (v2.1 - Ink-based Terminal UI)
+[[ -f "$GIT_SUBMODULES_PLUGIN_DIR/lib/tui/bridge.zsh" ]] && \
+    source "$GIT_SUBMODULES_PLUGIN_DIR/lib/tui/bridge.zsh"
+[[ -f "$GIT_SUBMODULES_PLUGIN_DIR/lib/tui/launcher.zsh" ]] && \
+    source "$GIT_SUBMODULES_PLUGIN_DIR/lib/tui/launcher.zsh"
+
+# Load shell completions (v2.0)
 fpath+="$GIT_SUBMODULES_PLUGIN_DIR/completions"
+
+# Load user configuration and custom aliases (v2.1)
+[[ $(type -w _load_config) == *function* ]] && _load_config
+[[ $(type -w _load_custom_aliases) == *function* ]] && _load_custom_aliases
+
+# Optional: Show welcome message on first run (v2.1 - uncomment to enable)
+# [[ $(type -w _check_first_run) == *function* ]] && _check_first_run
 
 #=============================================================================
 # Utility Functions
 #=============================================================================
 
-# Logging functions
-_log_info() {
-    [[ "$GIT_SUBMODULES_VERBOSE" == "true" ]] && echo "ℹ️  $*"
-}
-
-_log_success() {
-    echo "✅ $*"
-}
-
-_log_warning() {
-    echo "⚠️  $*"
-}
-
-_log_error() {
-    echo "❌ $*" >&2
-}
+# Note: Logging functions now sourced from lib/ui/logging.zsh
+# (_log_info, _log_success, _log_warning, _log_error)
 
 # Toggle verbose mode
 toggle_verbose() {
@@ -118,30 +135,142 @@ git_submodules_status() {
 # Core Git Operations
 #=============================================================================
 
+# Detect which submodules have a specific branch
+_detect_branch_in_submodules() {
+    local branch_name="$1"
+    local -a submodules_with_branch
+    local -a submodules_without_branch
+
+    local submodules=$(_get_all_submodules)
+
+    if [[ -z "$submodules" ]]; then
+        return 1
+    fi
+
+    echo "$submodules" | while IFS= read -r submodule; do
+        if [[ -z "$submodule" ]]; then
+            continue
+        fi
+
+        # Check if branch exists in submodule
+        if (cd "$submodule" && git rev-parse --verify "$branch_name" >/dev/null 2>&1); then
+            echo "HAS:$submodule"
+        else
+            echo "MISSING:$submodule"
+        fi
+    done
+}
+
+# Parse detection results
+_parse_branch_detection() {
+    local branch_name="$1"
+    local detection_output="$2"
+
+    local -a with_branch=()
+    local -a without_branch=()
+
+    while IFS= read -r line; do
+        if [[ "$line" == HAS:* ]]; then
+            with_branch+=("${line#HAS:}")
+        elif [[ "$line" == MISSING:* ]]; then
+            without_branch+=("${line#MISSING:}")
+        fi
+    done <<< "$detection_output"
+
+    # Return as global vars
+    SUBMODULES_WITH_BRANCH=("${with_branch[@]}")
+    SUBMODULES_WITHOUT_BRANCH=("${without_branch[@]}")
+}
+
 # Checkout all repositories (including submodules)
 checkout_interactive() {
+    # Check for --help flag
+    _with_help "checkout_all" "$@" && return 0
+
+    # Validate git repository
+    _validate_git_repo || return $?
+
     local branch_name scope
 
     # Prompt for branch name
     echo -n "🌿 Enter the branch name to checkout: "
     read branch_name
 
-    if [ -z "$branch_name" ]; then
-        _log_error "Branch name is required!"
-        return 1
-    fi
+    # Validate branch name
+    _validate_branch_name "$branch_name" "checkout_interactive" || return $?
 
     # Get the current branch
     local current_branch
     current_branch=$(git rev-parse --abbrev-ref HEAD)
 
-    # Prompt for checkout type
-    echo "\n🎯 Where do you want to checkout the '$branch_name' branch?"
-    echo "1️⃣  🏠 Base repository"
-    echo "2️⃣  📦 Submodule repositories"
-    echo "3️⃣  🌍 Both (Base + Submodules)"
-    echo "4️⃣  🌍💾 Both (Base + Submodules) with Stash Handling"
-    echo -n "🤔 Enter your choice (1/2/3/4): "
+    # Detect which submodules have this branch
+    _log_info "🔍 Scanning submodules for branch '$branch_name'..."
+
+    local branch_detection=$(_detect_branch_in_submodules "$branch_name")
+    _parse_branch_detection "$branch_name" "$branch_detection"
+
+    local submodules_with_branch=("${SUBMODULES_WITH_BRANCH[@]}")
+    local submodules_without_branch=("${SUBMODULES_WITHOUT_BRANCH[@]}")
+    local total_with_branch=${#submodules_with_branch[@]}
+    local total_without_branch=${#submodules_without_branch[@]}
+
+    # Display detection results
+    echo ""
+    if [[ $total_with_branch -gt 0 ]]; then
+        echo "Found branch in $total_with_branch submodule(s):"
+        for sub in "${submodules_with_branch[@]}"; do
+            local current_sub_branch=$(cd "$sub" && git branch --show-current)
+            echo "  ✅ $sub (current: $current_sub_branch → target: $branch_name)"
+        done
+    fi
+
+    if [[ $total_without_branch -gt 0 ]]; then
+        echo ""
+        echo "Branch not found in $total_without_branch submodule(s):"
+        for sub in "${submodules_without_branch[@]}"; do
+            echo "  ❌ $sub"
+        done
+    fi
+    echo ""
+
+    # Check if base repo has the branch
+    local base_has_branch=false
+    if git rev-parse --verify "$branch_name" >/dev/null 2>&1; then
+        base_has_branch=true
+    fi
+
+    # Prompt for checkout type with smart menu
+    echo "🎯 Where do you want to checkout the '$branch_name' branch?"
+
+    if [[ "$base_has_branch" == "true" ]]; then
+        echo "1️⃣  🏠 Base repository only"
+    else
+        echo "1️⃣  🏠 Base repository (⚠️  branch not found)"
+    fi
+
+    if [[ $total_with_branch -gt 0 ]]; then
+        echo "2️⃣  📦 Selected submodules (choose which ones)"
+        echo "3️⃣  📦 All submodules with branch ($total_with_branch found)"
+
+        if [[ "$base_has_branch" == "true" ]]; then
+            echo "4️⃣  🌍 Base + All submodules with branch"
+            echo "5️⃣  🌍💾 Base + All submodules with branch (with Stash)"
+            echo -n "🤔 Enter your choice (1/2/3/4/5): "
+        else
+            echo "4️⃣  📦 All submodules with branch (with Stash)"
+            echo -n "🤔 Enter your choice (1/2/3/4): "
+        fi
+    else
+        if [[ "$base_has_branch" == "true" ]]; then
+            echo "2️⃣  🏠 Base only (no submodules have this branch)"
+            echo -n "🤔 Enter your choice (1/2): "
+        else
+            echo ""
+            _log_error "Branch '$branch_name' not found in base or any submodules!"
+            return 1
+        fi
+    fi
+
     read scope
 
     stash_base_repo() {
@@ -196,45 +325,145 @@ checkout_interactive() {
 
     case "$scope" in
         1)
+            # Base repository only
+            if [[ "$base_has_branch" != "true" ]]; then
+                _log_error "Branch '$branch_name' not found in base repository!"
+                return 1
+            fi
             _log_info "🏠 Checking out branch '$branch_name' in base repository..."
             git checkout "$branch_name" && git pull
             ;;
+
         2)
-            _log_info "📦 Checking out branch '$branch_name' in submodules..."
-            git submodule foreach --quiet --recursive "git checkout $branch_name && git pull"
+            # Selected submodules - show interactive selection
+            if [[ $total_with_branch -eq 0 ]]; then
+                # If no submodules have the branch, this is the "base only" option
+                if [[ "$base_has_branch" == "true" ]]; then
+                    _log_info "🏠 Checking out branch '$branch_name' in base repository..."
+                    git checkout "$branch_name" && git pull
+                else
+                    _log_error "No submodules have branch '$branch_name'"
+                    return 1
+                fi
+            else
+                # Use enhanced menu for multi-select if available
+                echo "📦 Select submodules to checkout (enter numbers separated by space):"
+                local i=1
+                for sub in "${submodules_with_branch[@]}"; do
+                    echo "  $i) $sub"
+                    ((i++))
+                done
+                echo -n "Selection: "
+                read selection
+
+                # Parse selection
+                local -a selected_submodules=()
+                for num in $selection; do
+                    if [[ $num -ge 1 ]] && [[ $num -le ${#submodules_with_branch[@]} ]]; then
+                        selected_submodules+=("${submodules_with_branch[$num]}")
+                    fi
+                done
+
+                # Checkout selected submodules
+                if [[ ${#selected_submodules[@]} -eq 0 ]]; then
+                    _log_error "No submodules selected!"
+                    return 1
+                fi
+
+                _log_info "📦 Checking out branch '$branch_name' in selected submodules..."
+                for sub in "${selected_submodules[@]}"; do
+                    _log_info "  → $sub"
+                    (cd "$sub" && git checkout "$branch_name" && git pull)
+                done
+            fi
             ;;
+
         3)
-            _log_info "🌍 Checking out branch '$branch_name' in base repository and submodules..."
-            git checkout "$branch_name" && git pull
-            git submodule foreach --quiet --recursive "git checkout $branch_name && git pull"
+            # All submodules with branch
+            if [[ $total_with_branch -eq 0 ]]; then
+                _log_error "No submodules have branch '$branch_name'"
+                return 1
+            fi
+
+            _log_info "📦 Checking out branch '$branch_name' in all submodules with branch..."
+            for sub in "${submodules_with_branch[@]}"; do
+                _log_info "  → $sub"
+                (cd "$sub" && git checkout "$branch_name" && git pull)
+            done
             ;;
+
         4)
+            # Base + All submodules OR All submodules with stash (depends on base_has_branch)
+            if [[ "$base_has_branch" == "true" ]]; then
+                # Base + All submodules
+                _log_info "🌍 Checking out branch '$branch_name' in base and submodules..."
+                git checkout "$branch_name" && git pull
+
+                for sub in "${submodules_with_branch[@]}"; do
+                    _log_info "  → $sub"
+                    (cd "$sub" && git checkout "$branch_name" && git pull)
+                done
+            else
+                # All submodules with stash (no base)
+                if [[ $total_with_branch -eq 0 ]]; then
+                    _log_error "No submodules have branch '$branch_name'"
+                    return 1
+                fi
+
+                _log_info "💾 Stashing changes in submodules before switching..."
+
+                for sub in "${submodules_with_branch[@]}"; do
+                    stash_submodule "$sub" "$current_branch"
+                done
+
+                _log_info "📦 Checking out branch '$branch_name' in submodules..."
+                for sub in "${submodules_with_branch[@]}"; do
+                    (cd "$sub" && git checkout "$branch_name" && git pull)
+                done
+
+                _log_info "🎯 Applying stashes..."
+                for sub in "${submodules_with_branch[@]}"; do
+                    apply_stash "$sub" "$branch_name"
+                done
+            fi
+            ;;
+
+        5)
+            # Base + All submodules with stash (only if base has branch)
+            if [[ "$base_has_branch" != "true" ]]; then
+                _log_error "Invalid choice!"
+                return 1
+            fi
+
+            if [[ $total_with_branch -eq 0 ]]; then
+                _log_error "No submodules have branch '$branch_name'"
+                return 1
+            fi
+
             _log_info "💾 Handling stashing before switching..."
             stash_base_repo "$current_branch"
 
-            # Stash all submodules dynamically
-            local submodules=$(_get_all_submodules)
-            if [[ -n "$submodules" ]]; then
-                echo "$submodules" | while IFS= read -r submodule; do
-                    [[ -n "$submodule" ]] && stash_submodule "$submodule" "$current_branch"
-                done
-            fi
+            for sub in "${submodules_with_branch[@]}"; do
+                stash_submodule "$sub" "$current_branch"
+            done
 
-            _log_info "🔄 Checking out branch '$branch_name' in base repository and submodules..."
-            git checkout --recurse-submodules "$branch_name"
+            _log_info "🔄 Checking out branch '$branch_name'..."
+            git checkout "$branch_name" && git pull
 
-            _log_info "🎯 Applying stash for base repository and submodules..."
+            for sub in "${submodules_with_branch[@]}"; do
+                (cd "$sub" && git checkout "$branch_name" && git pull)
+            done
+
+            _log_info "🎯 Applying stashes..."
             apply_stash_base_repo "$branch_name"
 
-            # Apply stash to all submodules dynamically
-            if [[ -n "$submodules" ]]; then
-                echo "$submodules" | while IFS= read -r submodule; do
-                    [[ -n "$submodule" ]] && apply_stash "$submodule" "$branch_name"
-                done
-            fi
+            for sub in "${submodules_with_branch[@]}"; do
+                apply_stash "$sub" "$branch_name"
+            done
             ;;
+
         *)
-            _log_error "Invalid choice! Please enter 1, 2, 3, or 4."
+            _log_error "Invalid choice!"
             return 1
             ;;
     esac
@@ -292,11 +521,16 @@ add_all() {
 
 # Create a new branch across repositories
 create_branch_all() {
+    # Check for --help flag
+    _with_help "create_branch_all" "$@" && return 0
+
+    # Validate git repository
+    _validate_git_repo || return $?
+
     local branch_name="$1"
-    if [ -z "$branch_name" ]; then
-        _log_error "Branch name required! Usage: create_branch_all <branch_name>"
-        return 1
-    fi
+
+    # Validate branch name
+    _validate_branch_name "$branch_name" "create_branch_all" || return $?
     
     _log_info "🏠 Creating branch '$branch_name' in base repository..."
     git checkout -b "$branch_name" || return 1
@@ -344,10 +578,16 @@ create_tag_all() {
 
 # Commit all changes with a message
 commit_all() {
+    # Check for --help flag
+    _with_help "commit_all" "$@" && return 0
+
+    # Validate git repository
+    _validate_git_repo || return $?
+
     local message="$1"
     if [ -z "$message" ]; then
-        _log_error "Commit message required! Usage: commit_all \"<message>\""
-        return 1
+        _error_with_help $ERR_INVALID_INPUT "Commit message required" "commit_all <message>"
+        return $ERR_INVALID_INPUT
     fi
     
     _log_info "💾 Committing changes in base repository..."
@@ -488,10 +728,19 @@ start_branch() { create_branch_interactive ""; }
 #=============================================================================
 
 merge_all() {
+    # Check for --help flag
+    _with_help "merge_all" "$@" && return 0
+
+    # Validate git repository
+    _validate_git_repo || return $?
+
     local base_branch current_branch scope
 
     echo -n "🌳 Enter the base branch to merge from: "
     read base_branch
+
+    # Validate branch name
+    _validate_branch_name "$base_branch" "merge_all" || return $?
 
     if [ -z "$base_branch" ]; then
         _log_error "Base branch is required!"
