@@ -75,6 +75,12 @@ GIT_SUBMODULES_VERBOSE=${GIT_SUBMODULES_VERBOSE:-true}
 [[ -f "$GIT_SUBMODULES_PLUGIN_DIR/lib/aliases/completion.zsh" ]] && \
     source "$GIT_SUBMODULES_PLUGIN_DIR/lib/aliases/completion.zsh"
 
+# TUI modules (v2.1 - Ink-based Terminal UI)
+[[ -f "$GIT_SUBMODULES_PLUGIN_DIR/lib/tui/bridge.zsh" ]] && \
+    source "$GIT_SUBMODULES_PLUGIN_DIR/lib/tui/bridge.zsh"
+[[ -f "$GIT_SUBMODULES_PLUGIN_DIR/lib/tui/launcher.zsh" ]] && \
+    source "$GIT_SUBMODULES_PLUGIN_DIR/lib/tui/launcher.zsh"
+
 # Load shell completions (v2.0)
 fpath+="$GIT_SUBMODULES_PLUGIN_DIR/completions"
 

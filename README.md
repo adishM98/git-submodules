@@ -68,6 +68,54 @@ A clean and powerful Oh My Zsh plugin for managing Git repositories with submodu
    source /path/to/git-submodules/git-submodules.plugin.zsh
    ```
 
+## 🎨 TUI (Terminal User Interface)
+
+An interactive terminal UI for visualizing git status across all submodules. Built with [Ink](https://github.com/vadimdemedes/ink).
+
+### Installation
+
+**Via NPM (Recommended):**
+```bash
+npm install -g git-submodules-tui
+gsm-tui
+```
+
+**Via Plugin:**
+The TUI is automatically available when you install the git-submodules plugin:
+```bash
+gsm-tui
+```
+
+### Features
+
+- 📊 Visual status dashboard for base repo + all submodules
+- 🎨 4 color themes (Dark, Light, Nord, Minimal)
+- ⌨️ Vim-style navigation (hjkl/arrows)
+- 🔄 Auto-refresh every 2 seconds
+- 🎯 Status indicators (clean/dirty/conflicts)
+- 📈 Ahead/behind tracking info
+
+### Requirements
+
+- Node.js 14+
+- zsh shell
+
+### Usage
+
+```bash
+cd /path/to/repo/with/submodules
+gsm-tui
+```
+
+**Keyboard shortcuts:**
+- `↑/k` and `↓/j` - Navigate
+- `t` - Cycle themes
+- `r` - Refresh
+- `h/?` - Help
+- `q/Esc` - Quit
+
+See [tui/README.md](tui/README.md) for full documentation.
+
 ## 🚀 Quick Start
 
 After installation, you can immediately start using commands like:
